@@ -1,5 +1,5 @@
 import { sporcuKaydet, sporcuSil } from "@/app/yonetim/actions";
-import type { Sporcu } from "@/lib/types";
+import { MEVKILER, type Sporcu } from "@/lib/types";
 
 export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
   return (
@@ -34,13 +34,31 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="etiket" htmlFor="mevki">Mevki</label>
-            <input id="mevki" name="mevki" className="alan" placeholder="Orta saha"
-              defaultValue={sporcu?.mevki ?? ""} />
+            <select id="mevki" name="mevki" className="alan" defaultValue={sporcu?.mevki ?? ""}>
+              <option value="">Belirtilmedi</option>
+              {MEVKILER.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
           </div>
           <div>
             <label className="etiket" htmlFor="forma_no">Forma no</label>
             <input id="forma_no" name="forma_no" type="number" min="1" max="99" className="alan"
               defaultValue={sporcu?.forma_no ?? ""} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="etiket" htmlFor="okul">Okulu</label>
+            <input id="okul" name="okul" className="alan" defaultValue={sporcu?.okul ?? ""} />
+          </div>
+          <div>
+            <label className="etiket" htmlFor="ayak">Kullandığı ayak</label>
+            <select id="ayak" name="ayak" className="alan" defaultValue={sporcu?.ayak ?? ""}>
+              <option value="">Belirtilmedi</option>
+              <option value="Sağ">Sağ</option>
+              <option value="Sol">Sol</option>
+              <option value="Çift ayak">Çift ayak</option>
+            </select>
           </div>
         </div>
 
@@ -69,6 +87,19 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
           bağlanır.
         </p>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="etiket" htmlFor="acil_kisi">Acil durumda aranacak</label>
+            <input id="acil_kisi" name="acil_kisi" className="alan"
+              defaultValue={sporcu?.acil_kisi ?? ""} />
+          </div>
+          <div>
+            <label className="etiket" htmlFor="acil_telefon">Acil durum telefonu</label>
+            <input id="acil_telefon" name="acil_telefon" type="tel" className="alan"
+              defaultValue={sporcu?.acil_telefon ?? ""} />
+          </div>
+        </div>
+
         <hr className="border-neutral-100" />
 
         <div className="grid grid-cols-2 gap-3">
@@ -82,6 +113,7 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
             <select id="durum" name="durum" className="alan" defaultValue={sporcu?.durum ?? "aktif"}>
               <option value="aktif">Aktif</option>
               <option value="pasif">Pasif</option>
+              <option value="onay_bekliyor">Onay bekliyor</option>
             </select>
           </div>
         </div>

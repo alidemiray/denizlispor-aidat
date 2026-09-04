@@ -6,6 +6,7 @@ const SEKMELER = [
   { yol: "/yonetim/sporcular", ad: "Sporcular" },
   { yol: "/yonetim/aidatlar", ad: "Aidatlar" },
   { yol: "/yonetim/odemeler", ad: "Ödemeler" },
+  { yol: "/yonetim/maclar", ad: "Maçlar" },
   { yol: "/yonetim/ayarlar", ad: "Ayarlar" },
 ];
 

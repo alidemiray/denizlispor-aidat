@@ -99,9 +99,14 @@ export default async function VeliPaneli() {
           </div>
         </section>
 
-        <h2 className="mb-2 mt-7 px-1 text-sm font-bold uppercase tracking-wide text-neutral-500">
-          Sporcularım
-        </h2>
+        <div className="mb-2 mt-7 flex items-center justify-between px-1">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
+            Sporcularım
+          </h2>
+          <Link href="/panel/sporcu-ekle" className="text-sm font-semibold text-yesil-700">
+            + Sporcu ekle
+          </Link>
+        </div>
 
         {sporcular.length === 0 ? (
           <div className="kart px-5 py-8 text-center">
@@ -110,9 +115,12 @@ export default async function VeliPaneli() {
               Hesabınıza tanımlı sporcu yok
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
-              Kulüp kaydınızda <b>{user.email}</b> adresi tanımlı değilse sporcunuz
-              görünmez. Kulüp yönetimiyle iletişime geçin.
+              Kulüp kaydınızda <b>{user.email}</b> adresi tanımlıysa sporcunuz kendiliğinden
+              görünür. Değilse sporcunuzu buradan ekleyebilirsiniz; kayıt kulüp onayına gider.
             </p>
+            <Link href="/panel/sporcu-ekle" className="btn-birincil mt-4">
+              Sporcu ekle
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -151,13 +159,17 @@ export default async function VeliPaneli() {
                       ) : null}
                     </div>
                     <div className="text-right">
-                      <p
-                        className={`text-sm font-bold ${
-                          borc > 0 ? "text-neutral-900" : "text-emerald-700"
-                        }`}
-                      >
-                        {borc > 0 ? tl(borc) : "Borç yok"}
-                      </p>
+                      {s.durum === "onay_bekliyor" ? (
+                        <span className="rozet bg-amber-100 text-amber-900">Onay bekliyor</span>
+                      ) : (
+                        <p
+                          className={`text-sm font-bold ${
+                            borc > 0 ? "text-neutral-900" : "text-emerald-700"
+                          }`}
+                        >
+                          {borc > 0 ? tl(borc) : "Borç yok"}
+                        </p>
+                      )}
                       <p className="text-[11px] text-neutral-400">detay ›</p>
                     </div>
                   </article>

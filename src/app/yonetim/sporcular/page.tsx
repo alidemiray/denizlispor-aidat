@@ -1,7 +1,8 @@
 import Link from "next/link";
 import UstBaslik from "@/components/UstBaslik";
 import { yoneticiGerekli } from "@/lib/yetki";
-import { tl } from "@/lib/format";
+import { sporcuDurumGuncelle } from "@/app/yonetim/actions";
+import { gunAdi, tl } from "@/lib/format";
 import type { Sporcu } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,9 @@ export default async function SporcularSayfasi() {
     borcHarita.set(b.sporcu_id, (borcHarita.get(b.sporcu_id) ?? 0) + Number(b.tutar));
   }
 
+  const bekleyenler = sporcular.filter((s) => s.durum === "onay_bekliyor");
+  const digerleri = sporcular.filter((s) => s.durum !== "onay_bekliyor");
+
   return (
     <>
       <UstBaslik
@@ -43,7 +47,63 @@ export default async function SporcularSayfasi() {
       />
 
       <div className="mx-auto w-full max-w-5xl px-4 pb-24">
-        {sporcular.length === 0 ? (
+        {bekleyenler.length > 0 ? (
+          <>
+            <h2 className="mb-2 mt-4 px-1 text-sm font-bold uppercase tracking-wide text-amber-700">
+              Veli kaydı — onay bekleyen ({bekleyenler.length})
+            </h2>
+            <div className="kart divide-y divide-neutral-100 border-l-4 border-amber-400">
+              {bekleyenler.map((s) => (
+                <div key={s.id} className="px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/yonetim/sporcular/${s.id}`}
+                        className="truncate font-semibold text-neutral-900">
+                        {s.ad} {s.soyad}
+                      </Link>
+                      <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
+                        {[
+                          s.dogum_tarihi ? gunAdi(s.dogum_tarihi) : null,
+                          s.mevki,
+                          s.okul,
+                        ].filter(Boolean).join(" · ") || "—"}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        Veli: {s.veli_ad_soyad || "—"}
+                        {s.veli_telefon ? ` · ${s.veli_telefon}` : ""} · {s.veli_eposta}
+                      </p>
+                      {s.notlar ? (
+                        <p className="mt-1 rounded-lg bg-neutral-50 px-2.5 py-1.5 text-xs text-neutral-600">
+                          {s.notlar}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <form action={sporcuDurumGuncelle}
+                    className="mt-3 flex flex-wrap items-end gap-2">
+                    <input type="hidden" name="id" value={s.id} />
+                    <input type="hidden" name="durum" value="aktif" />
+                    <div className="w-28">
+                      <label className="etiket text-xs">Yaş grubu</label>
+                      <input name="yas_grubu" className="alan py-2" placeholder="U14" />
+                    </div>
+                    <div className="w-32">
+                      <label className="etiket text-xs">Aylık aidat (₺)</label>
+                      <input name="aylik_aidat" inputMode="decimal" className="alan py-2"
+                        placeholder="0" />
+                    </div>
+                    <button className="rounded-xl bg-yesil-600 px-4 py-2.5 text-sm font-semibold text-white">
+                      Onayla ve aktif et
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {digerleri.length === 0 && bekleyenler.length === 0 ? (
           <div className="kart mt-3 px-5 py-10 text-center">
             <p className="font-semibold text-neutral-800">Henüz sporcu yok</p>
             <p className="mt-1 text-sm text-neutral-500">
@@ -55,7 +115,7 @@ export default async function SporcularSayfasi() {
           </div>
         ) : (
           <div className="kart mt-3 divide-y divide-neutral-100">
-            {sporcular.map((s) => {
+            {digerleri.map((s) => {
               const borc = borcHarita.get(s.id) ?? 0;
               return (
                 <Link
