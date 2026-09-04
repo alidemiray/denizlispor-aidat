@@ -1,0 +1,27 @@
+{
+  "name": "Denizlispor Sporcu Takip",
+  "short_name": "Denizlispor",
+  "description": "Denizlispor altyapı sporcu ve aidat takip uygulaması",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#046a38",
+  "theme_color": "#046a38",
+  "lang": "tr",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

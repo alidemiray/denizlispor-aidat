@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --yesil: #046a38;
+  --yesil-koyu: #024124;
+  --siyah: #1a1a1a;
+}
+
+html,
+body {
+  background: #f4f6f5;
+  color: var(--siyah);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@layer components {
+  .kart {
+    @apply rounded-2xl bg-white shadow-sm ring-1 ring-black/5;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50 disabled:active:scale-100;
+  }
+  .btn-birincil {
+    @apply btn bg-yesil-600 text-white hover:bg-yesil-700;
+  }
+  .btn-ikincil {
+    @apply btn bg-white text-yesil-700 ring-1 ring-yesil-600/25 hover:bg-yesil-50;
+  }
+  .btn-koyu {
+    @apply btn bg-neutral-900 text-white hover:bg-neutral-800;
+  }
+  .alan {
+    @apply w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-3 text-[16px] outline-none transition placeholder:text-neutral-400 focus:border-yesil-600 focus:ring-2 focus:ring-yesil-600/20;
+  }
+  .etiket {
+    @apply mb-1.5 block text-sm font-medium text-neutral-700;
+  }
+  .rozet {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+}
+
+@keyframes armaGiris {
+  0% { opacity: 0; transform: scale(0.82) translateY(8px); }
+  55% { opacity: 1; transform: scale(1.03) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.arma-giris { animation: armaGiris 900ms cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes yaziGiris {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.yazi-giris { animation: yaziGiris 700ms 420ms cubic-bezier(.2,.8,.2,1) both; }
