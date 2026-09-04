@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,6 +14,7 @@ export default function FotoYukle({
   fotoUrl: string | null;
 }) {
   const router = useRouter();
+  const yol = usePathname();
   const [bekle, setBekle] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
 
@@ -45,6 +46,7 @@ export default function FotoYukle({
       setHata(error.message);
       return;
     }
+    router.replace(`${yol}?kaydedildi=${encodeURIComponent("Fotoğraf güncellendi")}`);
     router.refresh();
   }
 

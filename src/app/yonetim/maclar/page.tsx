@@ -5,6 +5,7 @@ import { macKaydet } from "@/app/yonetim/actions";
 import { gunAdi } from "@/lib/format";
 import { MAC_TURU, macBasligi, skorMetni, sonucRozeti } from "@/lib/mac";
 import type { Mac } from "@/lib/types";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,9 @@ export default async function MaclarSayfasi() {
               </select>
             </div>
           </div>
-          <button className="btn-birincil w-full sm:w-auto sm:px-8">Maçı ekle</button>
+          <KaydetDugmesi className="btn-birincil w-full sm:w-auto sm:px-8" bekleyen="Ekleniyor…">
+            Maçı ekle
+          </KaydetDugmesi>
         </form>
 
         <div className="kart mt-4 divide-y divide-neutral-100">

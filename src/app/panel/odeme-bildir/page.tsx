@@ -16,6 +16,7 @@ export default async function OdemeBildirSayfasi() {
   const { data: sporcularData } = await supabase
     .from("spor_sporcular")
     .select("*")
+    .eq("veli_id", user.id)
     .order("ad");
   const sporcular = (sporcularData ?? []) as Sporcu[];
 

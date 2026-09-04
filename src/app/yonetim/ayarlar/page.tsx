@@ -1,6 +1,7 @@
 import UstBaslik from "@/components/UstBaslik";
 import { yoneticiGerekli } from "@/lib/yetki";
 import { ayarKaydet, rolAta } from "@/app/yonetim/actions";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +71,7 @@ export default async function AyarlarSayfasi() {
             </div>
           </div>
 
-          <button className="btn-birincil w-full">Ayarları kaydet</button>
+          <KaydetDugmesi>Ayarları kaydet</KaydetDugmesi>
         </form>
 
         <h2 className="mb-2 mt-8 px-1 text-sm font-bold uppercase tracking-wide text-neutral-500">

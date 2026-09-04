@@ -1,5 +1,6 @@
 import { sporcuKaydet, sporcuSil } from "@/app/yonetim/actions";
 import { MEVKILER, type Sporcu } from "@/lib/types";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
   return (
@@ -124,9 +125,9 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
             defaultValue={sporcu?.notlar ?? ""} />
         </div>
 
-        <button className="btn-birincil w-full">
+        <KaydetDugmesi>
           {sporcu ? "Değişiklikleri kaydet" : "Sporcuyu ekle"}
-        </button>
+        </KaydetDugmesi>
       </form>
 
       {sporcu ? (
@@ -137,9 +138,12 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
             Sporcuyla birlikte tüm aidat ve ödeme kayıtları da silinir. Kaydı korumak
             için silmek yerine durumu <b>Pasif</b> yapabilirsiniz.
           </p>
-          <button className="btn mt-3 w-full bg-red-50 text-red-700 ring-1 ring-red-600/20">
+          <KaydetDugmesi
+            bekleyen="Siliniyor…"
+            className="btn mt-3 w-full bg-red-50 text-red-700 ring-1 ring-red-600/20"
+          >
             Kalıcı olarak sil
-          </button>
+          </KaydetDugmesi>
         </form>
       ) : null}
     </div>

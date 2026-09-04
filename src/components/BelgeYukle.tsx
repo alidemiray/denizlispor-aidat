@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import Uyari from "@/components/Uyari";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +16,7 @@ export default function BelgeYukle({
   kullaniciId: string;
 }) {
   const router = useRouter();
+  const yol = usePathname();
   const dosyaRef = useRef<HTMLInputElement>(null);
   const [tur, setTur] = useState<BelgeTuru>("lisans");
   const [dosya, setDosya] = useState<File | null>(null);
@@ -57,6 +58,7 @@ export default function BelgeYukle({
     }
     setDosya(null);
     if (dosyaRef.current) dosyaRef.current.value = "";
+    router.replace(`${yol}?kaydedildi=${encodeURIComponent("Belge yüklendi")}`);
     router.refresh();
   }
 

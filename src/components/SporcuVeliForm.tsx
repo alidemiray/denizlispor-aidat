@@ -54,7 +54,14 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
       return;
     }
 
-    router.push(duzenleme ? `/panel/sporcu/${sporcu!.id}` : "/panel");
+    const mesaj = duzenleme
+      ? "Bilgiler kaydedildi"
+      : "Kayıt kulüp onayına gönderildi";
+    router.push(
+      duzenleme
+        ? `/panel/sporcu/${sporcu!.id}?kaydedildi=${encodeURIComponent(mesaj)}`
+        : `/panel?kaydedildi=${encodeURIComponent(mesaj)}`,
+    );
     router.refresh();
   }
 

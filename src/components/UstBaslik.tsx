@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import GeriDugmesi from "@/components/GeriDugmesi";
 
 export default function UstBaslik({
   baslik,
@@ -16,13 +16,7 @@ export default function UstBaslik({
     <header className="sticky top-0 z-20 bg-gradient-to-b from-yesil-700 to-yesil-800 px-4 pb-5 pt-[max(1rem,env(safe-area-inset-top))] text-white shadow-lg shadow-yesil-900/10">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
         {geri ? (
-          <Link
-            href={geri}
-            aria-label="Geri"
-            className="-ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg leading-none"
-          >
-            ‹
-          </Link>
+          <GeriDugmesi hedef={geri} />
         ) : (
           <Image src="/icons/icon-512.png" alt="Denizlispor" width={38} height={38} priority />
         )}

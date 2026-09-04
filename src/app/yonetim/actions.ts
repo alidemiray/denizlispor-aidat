@@ -15,6 +15,12 @@ function metin(v: FormDataEntryValue | null) {
   return s.length ? s : null;
 }
 
+/** Kaydetme sonrası ekranda "kaydedildi" bildirimi göstermek için. */
+function bildir(yol: string, mesaj: string): never {
+  const ayrac = yol.includes("?") ? "&" : "?";
+  redirect(`${yol}${ayrac}kaydedildi=${encodeURIComponent(mesaj)}`);
+}
+
 export async function sporcuKaydet(formData: FormData) {
   const supabase = await createClient();
   const id = metin(formData.get("id"));
@@ -47,16 +53,42 @@ export async function sporcuKaydet(formData: FormData) {
   }
 
   revalidatePath("/yonetim/sporcular");
-  redirect("/yonetim/sporcular");
+  bildir("/yonetim/sporcular", id ? "Sporcu bilgileri güncellendi" : "Sporcu eklendi");
 }
 
 export async function sporcuSil(formData: FormData) {
   const supabase = await createClient();
-  const id = String(formData.get("id"));
-  const { error } = await supabase.from("spor_sporcular").delete().eq("id", id);
+  const { error } = await supabase
+    .from("spor_sporcular")
+    .delete()
+    .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/sporcular");
-  redirect("/yonetim/sporcular");
+  bildir("/yonetim/sporcular", "Sporcu silindi");
+}
+
+export async function sporcuDurumGuncelle(formData: FormData) {
+  const supabase = await createClient();
+  const id = String(formData.get("id"));
+  const durum = String(formData.get("durum"));
+  const guncelleme: Record<string, unknown> = { durum };
+
+  const aidat = formData.get("aylik_aidat");
+  if (aidat !== null && String(aidat).trim() !== "") {
+    guncelleme.aylik_aidat = sayi(aidat);
+  }
+  const yasGrubu = metin(formData.get("yas_grubu"));
+  if (yasGrubu) guncelleme.yas_grubu = yasGrubu;
+
+  const { error } = await supabase.from("spor_sporcular").update(guncelleme).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/yonetim/sporcular");
+  revalidatePath("/yonetim");
+  bildir(
+    "/yonetim/sporcular",
+    durum === "aktif" ? "Sporcu onaylandı ve aktif edildi" : "Sporcu durumu güncellendi",
+  );
 }
 
 export async function donemOlustur(formData: FormData) {
@@ -64,21 +96,31 @@ export async function donemOlustur(formData: FormData) {
   const ham = String(formData.get("donem"));
   const donem = ham.length === 7 ? `${ham}-01` : ham;
   const sonOdeme = metin(formData.get("son_odeme_tarihi"));
-  const { error } = await supabase.rpc("spor_donem_olustur", {
+
+  const { data, error } = await supabase.rpc("spor_donem_olustur", {
     p_donem: donem,
     p_son_odeme: sonOdeme,
   });
   if (error) throw new Error(error.message);
+
   revalidatePath("/yonetim/aidatlar");
+  const adet = typeof data === "number" ? data : 0;
+  bildir(
+    `/yonetim/aidatlar?donem=${donem}`,
+    adet > 0 ? `${adet} sporcuya tahakkuk oluşturuldu` : "Bu dönem için yeni kayıt eklenmedi",
+  );
 }
 
 export async function aidatDurumGuncelle(formData: FormData) {
   const supabase = await createClient();
-  const id = String(formData.get("id"));
   const durum = String(formData.get("durum"));
-  const { error } = await supabase.from("spor_aidatlar").update({ durum }).eq("id", id);
+  const { error } = await supabase
+    .from("spor_aidatlar")
+    .update({ durum })
+    .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/aidatlar");
+  bildir("/yonetim/aidatlar", durum === "muaf" ? "Muaf olarak işaretlendi" : "Kayıt güncellendi");
 }
 
 export async function aidatSil(formData: FormData) {
@@ -89,6 +131,7 @@ export async function aidatSil(formData: FormData) {
     .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/aidatlar");
+  bildir("/yonetim/aidatlar", "Aidat kaydı silindi");
 }
 
 export async function odemeKarar(formData: FormData) {
@@ -96,8 +139,8 @@ export async function odemeKarar(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const id = String(formData.get("id"));
   const durum = String(formData.get("durum"));
+
   const { error } = await supabase
     .from("spor_odemeler")
     .update({
@@ -105,10 +148,12 @@ export async function odemeKarar(formData: FormData) {
       onaylayan_id: user?.id ?? null,
       onay_tarihi: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
+
   revalidatePath("/yonetim/odemeler");
   revalidatePath("/yonetim/aidatlar");
+  bildir("/yonetim/odemeler", durum === "onaylandi" ? "Ödeme onaylandı" : "Ödeme reddedildi");
 }
 
 export async function odemeEkle(formData: FormData) {
@@ -116,6 +161,7 @@ export async function odemeEkle(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   const { error } = await supabase.from("spor_odemeler").insert({
     sporcu_id: String(formData.get("sporcu_id")),
     aidat_id: metin(formData.get("aidat_id")),
@@ -129,8 +175,10 @@ export async function odemeEkle(formData: FormData) {
     onay_tarihi: new Date().toISOString(),
   });
   if (error) throw new Error(error.message);
+
   revalidatePath("/yonetim/odemeler");
   revalidatePath("/yonetim/aidatlar");
+  bildir("/yonetim/odemeler", "Ödeme kaydedildi");
 }
 
 export async function ayarKaydet(formData: FormData) {
@@ -149,45 +197,36 @@ export async function ayarKaydet(formData: FormData) {
     deger: String(formData.get(a) ?? "").trim(),
     guncellendi: new Date().toISOString(),
   }));
+
   const { error } = await supabase
     .from("spor_ayarlar")
     .upsert(satirlar, { onConflict: "anahtar" });
   if (error) throw new Error(error.message);
+
   revalidatePath("/yonetim/ayarlar");
   revalidatePath("/panel/odeme-bildir");
+  bildir("/yonetim/ayarlar", "Ayarlar kaydedildi");
 }
 
 export async function rolAta(formData: FormData) {
   const supabase = await createClient();
+  const rol = String(formData.get("rol"));
   const { error } = await supabase
     .from("spor_profiller")
-    .update({ rol: String(formData.get("rol")) })
+    .update({ rol })
     .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/ayarlar");
-}
-
-export async function sporcuDurumGuncelle(formData: FormData) {
-  const supabase = await createClient();
-  const id = String(formData.get("id"));
-  const durum = String(formData.get("durum"));
-  const guncelleme: Record<string, unknown> = { durum };
-  const aidat = formData.get("aylik_aidat");
-  if (aidat !== null && String(aidat).trim() !== "") {
-    guncelleme.aylik_aidat = sayi(aidat);
-  }
-  const yasGrubu = metin(formData.get("yas_grubu"));
-  if (yasGrubu) guncelleme.yas_grubu = yasGrubu;
-
-  const { error } = await supabase.from("spor_sporcular").update(guncelleme).eq("id", id);
-  if (error) throw new Error(error.message);
-  revalidatePath("/yonetim/sporcular");
-  revalidatePath("/yonetim");
+  bildir(
+    "/yonetim/ayarlar",
+    rol === "yonetici" ? "Yönetici yetkisi verildi" : "Yönetici yetkisi kaldırıldı",
+  );
 }
 
 export async function macKaydet(formData: FormData) {
   const supabase = await createClient();
   const id = metin(formData.get("id"));
+
   const kayit = {
     tarih: String(formData.get("tarih")),
     saat: metin(formData.get("saat")),
@@ -203,11 +242,14 @@ export async function macKaydet(formData: FormData) {
   if (id) {
     const { error } = await supabase.from("spor_maclar").update(kayit).eq("id", id);
     if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase.from("spor_maclar").insert(kayit);
-    if (error) throw new Error(error.message);
+    revalidatePath(`/yonetim/maclar/${id}`);
+    bildir(`/yonetim/maclar/${id}`, "Maç bilgileri kaydedildi");
   }
+
+  const { data, error } = await supabase.from("spor_maclar").insert(kayit).select("id").single();
+  if (error) throw new Error(error.message);
   revalidatePath("/yonetim/maclar");
+  bildir(`/yonetim/maclar/${data.id}`, "Maç eklendi — şimdi kadroyu girebilirsiniz");
 }
 
 export async function macSil(formData: FormData) {
@@ -218,7 +260,7 @@ export async function macSil(formData: FormData) {
     .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/maclar");
-  redirect("/yonetim/maclar");
+  bildir("/yonetim/maclar", "Maç silindi");
 }
 
 export async function kadroKaydet(formData: FormData) {
@@ -269,14 +311,21 @@ export async function kadroKaydet(formData: FormData) {
 
   revalidatePath(`/yonetim/maclar/${macId}`);
   revalidatePath("/yonetim/maclar");
+  bildir(`/yonetim/maclar/${macId}`, `${eklenecek.length} oyuncunun süresi kaydedildi`);
 }
 
 export async function belgeSil(formData: FormData) {
   const supabase = await createClient();
-  const id = String(formData.get("id"));
+  const sporcuId = String(formData.get("sporcu_id"));
   const yol = metin(formData.get("dosya_yolu"));
-  const { error } = await supabase.from("spor_belgeler").delete().eq("id", id);
+
+  const { error } = await supabase
+    .from("spor_belgeler")
+    .delete()
+    .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   if (yol) await supabase.storage.from("spor-belgeler").remove([yol]);
-  revalidatePath(`/yonetim/sporcular/${String(formData.get("sporcu_id"))}`);
+
+  revalidatePath(`/yonetim/sporcular/${sporcuId}`);
+  bildir(`/yonetim/sporcular/${sporcuId}`, "Belge silindi");
 }

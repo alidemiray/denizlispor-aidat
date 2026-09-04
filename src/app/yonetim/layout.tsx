@@ -20,6 +20,12 @@ export default async function YonetimLayout({
     <div className="min-h-dvh bg-[#f4f6f5]">
       <nav className="sticky top-0 z-30 -mt-px overflow-x-auto border-b border-black/5 bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl gap-1 px-3 py-2">
+          <Link
+            href="/panel"
+            className="whitespace-nowrap rounded-full bg-yesil-50 px-3.5 py-1.5 text-sm font-semibold text-yesil-700"
+          >
+            ‹ Veli panelim
+          </Link>
           {SEKMELER.map((s) => (
             <Link
               key={s.yol}

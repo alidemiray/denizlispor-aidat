@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import SwKayit from "@/components/SwKayit";
+import KayitBildirimi from "@/components/KayitBildirimi";
 
 export const metadata: Metadata = {
   title: "Denizlispor Sporcu Takip",
@@ -36,8 +38,19 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="tr">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-dvh antialiased">
         {children}
+        <Suspense fallback={null}>
+          <KayitBildirimi />
+        </Suspense>
         <SwKayit />
       </body>
     </html>

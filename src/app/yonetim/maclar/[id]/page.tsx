@@ -5,6 +5,7 @@ import { kadroKaydet, macKaydet, macSil } from "@/app/yonetim/actions";
 import { gunAdi } from "@/lib/format";
 import { macBasligi } from "@/lib/mac";
 import type { Mac, MacKatilim, Sporcu } from "@/lib/types";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +98,7 @@ export default async function MacDetay({
                 defaultValue={mac.skor_rakip ?? ""} />
             </div>
             <div className="flex items-end">
-              <button className="btn-birincil w-full">Kaydet</button>
+              <KaydetDugmesi>Kaydet</KaydetDugmesi>
             </div>
           </div>
         </form>
@@ -168,9 +169,9 @@ export default async function MacDetay({
             </div>
 
             <div className="border-t border-neutral-100 bg-neutral-50/60 px-4 py-3">
-              <button className="btn-birincil w-full sm:w-auto sm:px-8">
+              <KaydetDugmesi className="btn-birincil w-full sm:w-auto sm:px-8">
                 Süreleri kaydet
-              </button>
+              </KaydetDugmesi>
               <p className="mt-2 text-xs text-neutral-500">
                 Dakikası 0 olan ve hiçbir katkısı işaretlenmeyen sporcu bu maçta oynamamış
                 sayılır; velisinin ekranında görünmez.
@@ -185,9 +186,12 @@ export default async function MacDetay({
           <p className="mt-1 text-xs text-neutral-500">
             Maçla birlikte tüm süre kayıtları da silinir.
           </p>
-          <button className="btn mt-3 w-full bg-red-50 text-red-700 ring-1 ring-red-600/20 sm:w-auto sm:px-8">
+          <KaydetDugmesi
+            bekleyen="Siliniyor…"
+            className="btn mt-3 w-full bg-red-50 text-red-700 ring-1 ring-red-600/20 sm:w-auto sm:px-8"
+          >
             Maçı sil
-          </button>
+          </KaydetDugmesi>
         </form>
       </div>
     </>

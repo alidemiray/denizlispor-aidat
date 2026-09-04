@@ -4,6 +4,7 @@ import { yoneticiGerekli } from "@/lib/yetki";
 import { sporcuDurumGuncelle } from "@/app/yonetim/actions";
 import { gunAdi, tl } from "@/lib/format";
 import type { Sporcu } from "@/lib/types";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export const dynamic = "force-dynamic";
 
@@ -93,9 +94,12 @@ export default async function SporcularSayfasi() {
                       <input name="aylik_aidat" inputMode="decimal" className="alan py-2"
                         placeholder="0" />
                     </div>
-                    <button className="rounded-xl bg-yesil-600 px-4 py-2.5 text-sm font-semibold text-white">
+                    <KaydetDugmesi
+                      bekleyen="Onaylanıyor…"
+                      className="rounded-xl bg-yesil-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    >
                       Onayla ve aktif et
-                    </button>
+                    </KaydetDugmesi>
                   </form>
                 </div>
               ))}

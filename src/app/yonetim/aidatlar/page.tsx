@@ -3,6 +3,7 @@ import { AidatRozeti } from "@/components/Rozet";
 import { yoneticiGerekli } from "@/lib/yetki";
 import { aidatDurumGuncelle, aidatSil, donemOlustur } from "@/app/yonetim/actions";
 import { bugununDonemi, donemAdi, gecikmisMi, tl } from "@/lib/format";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +71,7 @@ export default async function AidatlarSayfasi({
               <input id="son_odeme_tarihi" name="son_odeme_tarihi" type="date" className="alan" />
             </div>
             <div className="flex items-end">
-              <button className="btn-birincil w-full">Tahakkuku oluştur</button>
+              <KaydetDugmesi bekleyen="Oluşturuluyor…">Tahakkuku oluştur</KaydetDugmesi>
             </div>
           </div>
         </form>

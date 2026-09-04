@@ -18,11 +18,14 @@ export default async function VeliPaneli() {
 
   const { data: profil } = await supabase.rpc("spor_profil");
 
-  if (profil?.rol === "yonetici") redirect("/yonetim");
+  const yonetici = profil?.rol === "yonetici";
 
+  // Veli paneli her zaman yalnızca kişinin kendi sporcularını gösterir —
+  // yöneticinin de çocuğu olabilir, o da burada kendi çocuğunu görür.
   const { data: sporcularData } = await supabase
     .from("spor_sporcular")
     .select("*")
+    .eq("veli_id", user.id)
     .order("ad");
   const sporcular = (sporcularData ?? []) as Sporcu[];
 
@@ -63,7 +66,22 @@ export default async function VeliPaneli() {
       />
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-24">
-        <section className="-mt-3">
+        {yonetici ? (
+          <Link href="/yonetim" className="mt-3 block">
+            <div className="kart flex items-center gap-3 border-l-4 border-yesil-600 px-4 py-3">
+              <span className="text-xl">🛡️</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-neutral-900">Kulüp yönetimi</p>
+                <p className="text-xs text-neutral-500">
+                  Sporcular, aidatlar, ödemeler ve maçlar
+                </p>
+              </div>
+              <span className="text-neutral-400">›</span>
+            </div>
+          </Link>
+        ) : null}
+
+        <section className={yonetici ? "mt-3" : "-mt-3"}>
           <div className="kart overflow-hidden">
             <div className="bg-white px-5 py-5">
               <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
@@ -83,6 +101,11 @@ export default async function VeliPaneli() {
                     }`
                   : "Güncel borcunuz bulunmuyor. Teşekkürler!"}
               </p>
+            </div>
+            <div className="border-t border-neutral-100 bg-neutral-50/60 px-5 py-3">
+              <Link href="/panel/aidat-akisi" className="btn-ikincil w-full">
+                Aidat akış tablosu
+              </Link>
             </div>
             {sporcular.length > 0 ? (
               <div className="border-t border-neutral-100 bg-neutral-50/60 px-5 py-3">
