@@ -67,7 +67,7 @@ export default async function SporcuDuzenle({
         ) : null}
 
         {sporcu.durum === "onay_bekliyor" ? (
-          <div className="kart mb-4 border-l-4 border-amber-400 px-4 py-3">
+          <div className="mb-4 rounded-2xl bg-amber-50 px-4 py-3.5 ring-1 ring-amber-500/20">
             <p className="text-sm font-semibold text-neutral-900">
               Bu kayıt veli tarafından girildi ve onay bekliyor
             </p>

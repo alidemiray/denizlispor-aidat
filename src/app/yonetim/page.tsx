@@ -45,7 +45,7 @@ export default async function YonetimOzet() {
       <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         {onayBekleyen > 0 ? (
           <Link href="/yonetim/odemeler" className="mt-3 block">
-            <div className="kart flex items-center gap-3 border-l-4 border-amber-400 px-4 py-4">
+            <div className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-4 ring-1 ring-amber-500/20">
               <span className="text-2xl">🧾</span>
               <div className="flex-1">
                 <p className="font-semibold text-neutral-900">

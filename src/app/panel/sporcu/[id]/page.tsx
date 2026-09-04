@@ -169,7 +169,7 @@ export default async function SporcuDetay({
         </div>
 
         {sporcu.durum === "onay_bekliyor" ? (
-          <div className="kart mt-4 border-l-4 border-amber-400 px-4 py-3">
+          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3.5 ring-1 ring-amber-500/20">
             <p className="text-sm font-semibold text-neutral-900">Kayıt onay bekliyor</p>
             <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
               Kulüp yönetimi kaydı inceleyip onayladığında sporcunuz aktif hale gelir.

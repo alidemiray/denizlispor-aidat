@@ -64,7 +64,7 @@ export default async function AntrenorAnaSayfa() {
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         {yoklamasiz.length > 0 ? (
-          <div className="kart mt-4 border-l-4 border-amber-400 px-4 py-4">
+          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-4 ring-1 ring-amber-500/20">
             <p className="text-sm font-semibold text-neutral-900">
               {yoklamasiz.length} antrenmanın yoklaması alınmamış
             </p>

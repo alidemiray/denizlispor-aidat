@@ -53,7 +53,7 @@ export default async function SporcularSayfasi() {
             <h2 className="mb-2 mt-4 px-1 text-sm font-bold uppercase tracking-wide text-amber-700">
               Veli kaydı — onay bekleyen ({bekleyenler.length})
             </h2>
-            <div className="kart divide-y divide-neutral-100 border-l-4 border-amber-400">
+            <div className="divide-y divide-amber-500/15 rounded-2xl bg-amber-50/70 ring-1 ring-amber-500/20">
               {bekleyenler.map((s) => (
                 <div key={s.id} className="px-4 py-4">
                   <div className="flex items-start gap-3">
