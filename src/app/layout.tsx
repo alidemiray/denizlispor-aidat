@@ -7,7 +7,7 @@ import KayitBildirimi from "@/components/KayitBildirimi";
 export const metadata: Metadata = {
   title: "Denizlispor Sporcu Takip",
   description:
-    "Denizlispor altyapı sporcuları için veli bilgilendirme ve aidat takip uygulaması",
+    "Denizlispor altyapı sporcuları için antrenman, gelişim ve aidat takip uygulaması",
   manifest: "/manifest.webmanifest",
   applicationName: "Denizlispor Sporcu Takip",
   appleWebApp: {

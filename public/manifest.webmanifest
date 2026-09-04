@@ -1,7 +1,7 @@
 {
   "name": "Denizlispor Sporcu Takip",
   "short_name": "Denizlispor",
-  "description": "Denizlispor altyapı sporcu ve aidat takip uygulaması",
+  "description": "Denizlispor altyapı sporcu takip uygulaması — antrenman, gelişim, aidat",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

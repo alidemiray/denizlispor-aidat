@@ -93,7 +93,7 @@ export default function GirisSayfasi() {
   return (
     <AuthKabuk
       baslik="Veli girişi"
-      altBaslik="Sporcunuzun bilgilerini ve aidat durumunu görmek için giriş yapın."
+      altBaslik="Sporcunuzun antrenmanlarını, gelişimini ve kulüp bilgilerini görmek için giriş yapın."
     >
       <Suspense fallback={null}>
         <Form />
