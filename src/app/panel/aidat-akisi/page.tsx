@@ -69,7 +69,7 @@ export default async function AidatAkisi({
         geri="/panel"
       />
 
-      <div className="mx-auto w-full max-w-3xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         {donemler.length === 0 ? (
           <div className="kart mt-4 px-5 py-10 text-center">
             <p className="text-4xl">📋</p>

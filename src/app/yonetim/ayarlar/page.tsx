@@ -24,9 +24,9 @@ export default async function AyarlarSayfasi() {
 
   return (
     <>
-      <UstBaslik baslik="Ayarlar" altBaslik="Kulüp bilgileri ve yetkiler" geri="/yonetim" />
+      <UstBaslik baslik="Ayarlar" altBaslik="Kulüp bilgileri ve yetkiler" geri="/yonetim/daha" />
 
-      <div className="mx-auto w-full max-w-2xl px-4 pb-24 pt-4">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
         <form action={ayarKaydet} className="kart space-y-4 px-4 py-5">
           <p className="text-sm font-bold text-neutral-900">
             Ödeme bilgileri (velilere gösterilir)
@@ -77,6 +77,14 @@ export default async function AyarlarSayfasi() {
         <h2 className="mb-2 mt-8 px-1 text-sm font-bold uppercase tracking-wide text-neutral-500">
           Kullanıcılar ve yetkiler
         </h2>
+        <div className="kart mb-3 px-4 py-3.5">
+          <p className="text-xs leading-relaxed text-neutral-600">
+            <b>Veli</b> yalnızca kendi sporcusunu görür. <b>Antrenör</b> tüm sporcuları görür,
+            antrenman günlüğü ve yoklama girer, gelişim notu yazar — aidat ve ödeme bilgilerine
+            erişemez. <b>Yönetici</b> her şeye erişir ve kayıt silebilir.
+          </p>
+        </div>
+
         <div className="kart divide-y divide-neutral-100">
           {(kullanicilar ?? []).map((k) => (
             <div key={k.id} className="flex items-center gap-3 px-4 py-3">
@@ -87,28 +95,29 @@ export default async function AyarlarSayfasi() {
                 </p>
                 <p className="truncate text-xs text-neutral-500">{k.eposta}</p>
               </div>
-              <form action={rolAta} className="flex items-center gap-2">
-                <input type="hidden" name="id" value={k.id} />
-                <input
-                  type="hidden"
-                  name="rol"
-                  value={k.rol === "yonetici" ? "veli" : "yonetici"}
-                />
-                <span
-                  className={`rozet ${
-                    k.rol === "yonetici"
-                      ? "bg-yesil-100 text-yesil-800"
-                      : "bg-neutral-200 text-neutral-700"
-                  }`}
-                >
-                  {k.rol === "yonetici" ? "Yönetici" : "Veli"}
-                </span>
-                {k.id !== user.id ? (
-                  <button className="rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-semibold text-neutral-700">
-                    {k.rol === "yonetici" ? "Veli yap" : "Yönetici yap"}
-                  </button>
-                ) : null}
-              </form>
+              {k.id === user.id ? (
+                <span className="rozet bg-yesil-100 text-yesil-800">Yönetici (siz)</span>
+              ) : (
+                <form action={rolAta} className="flex items-center gap-1.5">
+                  <input type="hidden" name="id" value={k.id} />
+                  <select
+                    name="rol"
+                    defaultValue={k.rol}
+                    aria-label="Rol"
+                    className="alan w-auto px-2 py-1.5 text-xs"
+                  >
+                    <option value="veli">Veli</option>
+                    <option value="antrenor">Antrenör</option>
+                    <option value="yonetici">Yönetici</option>
+                  </select>
+                  <KaydetDugmesi
+                    bekleyen="…"
+                    className="rounded-lg bg-neutral-100 px-2.5 py-2 text-xs font-semibold text-neutral-700 disabled:opacity-50"
+                  >
+                    Uygula
+                  </KaydetDugmesi>
+                </form>
+              )}
             </div>
           ))}
         </div>

@@ -31,7 +31,7 @@ export default async function MaclarSayfasi() {
     <>
       <UstBaslik baslik="Maçlar" altBaslik="Fikstür, sonuç ve oynanan süreler" geri="/yonetim" />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         <form action={macKaydet} className="kart mt-3 space-y-3 px-4 py-4">
           <p className="text-sm font-bold text-neutral-900">Yeni maç</p>
           <div className="grid gap-3 sm:grid-cols-3">

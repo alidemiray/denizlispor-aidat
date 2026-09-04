@@ -47,7 +47,7 @@ export default async function SporcularSayfasi() {
         }
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         {bekleyenler.length > 0 ? (
           <>
             <h2 className="mb-2 mt-4 px-1 text-sm font-bold uppercase tracking-wide text-amber-700">

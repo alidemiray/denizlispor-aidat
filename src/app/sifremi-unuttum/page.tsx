@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import AuthKabuk from "@/components/AuthKabuk";
 import Uyari from "@/components/Uyari";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SifremiUnuttum() {
+function Form() {
+  const params = useSearchParams();
+  const disHata = params.get("hata");
   const [eposta, setEposta] = useState("");
   const [durum, setDurum] = useState<"bos" | "bekle" | "tamam">("bos");
   const [hata, setHata] = useState<string | null>(null);
@@ -29,10 +32,7 @@ export default function SifremiUnuttum() {
   }
 
   return (
-    <AuthKabuk
-      baslik="Şifremi unuttum"
-      altBaslik="E-posta adresinizi girin, şifre yenileme bağlantısı gönderelim."
-    >
+    <>
       {durum === "tamam" ? (
         <div className="space-y-4">
           <Uyari tip="basari">
@@ -43,6 +43,7 @@ export default function SifremiUnuttum() {
         </div>
       ) : (
         <form onSubmit={gonder} className="space-y-4">
+          {disHata ? <Uyari tip="bilgi">{disHata}</Uyari> : null}
           {hata ? <Uyari>{hata}</Uyari> : null}
           <div>
             <label className="etiket" htmlFor="eposta">E-posta</label>
@@ -57,6 +58,19 @@ export default function SifremiUnuttum() {
           </p>
         </form>
       )}
+    </>
+  );
+}
+
+export default function SifremiUnuttum() {
+  return (
+    <AuthKabuk
+      baslik="Şifremi unuttum"
+      altBaslik="E-posta adresinizi girin, şifre yenileme bağlantısı gönderelim."
+    >
+      <Suspense fallback={null}>
+        <Form />
+      </Suspense>
     </AuthKabuk>
   );
 }

@@ -46,7 +46,7 @@ export default async function MacDetay({
         geri="/yonetim/maclar"
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         <form action={macKaydet} className="kart mt-3 space-y-3 px-4 py-4">
           <input type="hidden" name="id" value={mac.id} />
           <p className="text-sm font-bold text-neutral-900">Maç bilgileri</p>

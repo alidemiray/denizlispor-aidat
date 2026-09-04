@@ -110,7 +110,7 @@ export default async function OdemelerSayfasi() {
         geri="/yonetim"
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         <h2 className="mb-2 mt-4 px-1 text-sm font-bold uppercase tracking-wide text-neutral-500">
           Onay bekleyenler
         </h2>

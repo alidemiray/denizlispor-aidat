@@ -9,7 +9,7 @@ export default async function YeniSporcu() {
   return (
     <>
       <UstBaslik baslik="Yeni sporcu" geri="/yonetim/sporcular" />
-      <div className="mx-auto w-full max-w-2xl px-4 pb-24 pt-4">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
         <SporcuForm />
       </div>
     </>

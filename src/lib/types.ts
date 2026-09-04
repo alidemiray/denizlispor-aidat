@@ -1,4 +1,4 @@
-export type Rol = "veli" | "yonetici";
+export type Rol = "veli" | "antrenor" | "yonetici";
 
 export type Profil = {
   id: string;
@@ -114,3 +114,61 @@ export const MEVKILER = [
   "Sol kanat",
   "Forvet",
 ];
+
+export type Antrenman = {
+  id: string;
+  tarih: string;
+  baslangic: string | null;
+  sure_dk: number | null;
+  yas_grubu: string | null;
+  yer: string | null;
+  tur: string;
+  baslik: string;
+  icerik: string | null;
+  hedef: string | null;
+  ekleyen_id: string | null;
+  created_at: string;
+};
+
+export type Yoklama = {
+  id: string;
+  antrenman_id: string;
+  sporcu_id: string;
+  durum: "geldi" | "gelmedi" | "izinli" | "gec";
+  notlar: string | null;
+};
+
+export type SporcuNotu = {
+  id: string;
+  sporcu_id: string;
+  tarih: string;
+  icerik: string;
+  gorunurluk: "veli" | "kulup";
+  yazan_id: string | null;
+  created_at: string;
+};
+
+export type Degerlendirme = {
+  id: string;
+  sporcu_id: string;
+  donem: string;
+  teknik: number | null;
+  fizik: number | null;
+  taktik: number | null;
+  disiplin: number | null;
+  takim_oyunu: number | null;
+  yorum: string | null;
+  created_at: string;
+};
+
+export type Olcum = {
+  id: string;
+  sporcu_id: string;
+  tarih: string;
+  boy_cm: number | null;
+  kilo_kg: number | null;
+  sprint_20m: number | null;
+  dikey_sicrama_cm: number | null;
+  dayaniklilik_dk: number | null;
+  notlar: string | null;
+};

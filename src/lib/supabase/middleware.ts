@@ -31,7 +31,13 @@ export async function updateSession(request: NextRequest) {
   const yol = request.nextUrl.pathname;
   const korumasiz = KORUMASIZ.some((p) => yol.startsWith(p));
 
-  if (!user && (yol.startsWith("/panel") || yol.startsWith("/yonetim"))) {
+  const korumali =
+    yol.startsWith("/panel") ||
+    yol.startsWith("/yonetim") ||
+    yol.startsWith("/antrenor") ||
+    yol.startsWith("/git");
+
+  if (!user && korumali) {
     const url = request.nextUrl.clone();
     url.pathname = "/giris";
     url.searchParams.set("devam", yol);
@@ -40,7 +46,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && korumasiz) {
     const url = request.nextUrl.clone();
-    url.pathname = "/panel";
+    url.pathname = "/git";
     url.search = "";
     return NextResponse.redirect(url);
   }

@@ -7,19 +7,23 @@
   --yesil: #046a38;
   --yesil-koyu: #024124;
   --siyah: #1a1a1a;
+  --zemin: #f4f6f5;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
 body {
   font-family: var(--font-sans);
   letter-spacing: -0.006em;
-  background: #f4f6f5;
+  background: var(--zemin);
   color: var(--siyah);
   -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
 }
 
 h1,
@@ -28,18 +32,29 @@ h3 {
   letter-spacing: -0.02em;
 }
 
+/* iOS'ta girişlerde otomatik yakınlaştırmayı önlemek için 16px taban */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
 @layer components {
   .kart {
-    @apply rounded-2xl bg-white shadow-sm ring-1 ring-black/5;
+    @apply rounded-2xl bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_6px_20px_-12px_rgba(16,24,40,0.18)] ring-1 ring-black/[0.04];
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50 disabled:active:scale-100;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50 disabled:active:scale-100;
   }
   .btn-birincil {
-    @apply btn bg-yesil-600 text-white hover:bg-yesil-700;
+    @apply btn bg-yesil-600 text-white shadow-sm shadow-yesil-900/20 hover:bg-yesil-700;
   }
   .btn-ikincil {
-    @apply btn bg-white text-yesil-700 ring-1 ring-yesil-600/25 hover:bg-yesil-50;
+    @apply btn bg-white text-yesil-700 ring-1 ring-yesil-600/20 hover:bg-yesil-50;
   }
   .btn-koyu {
     @apply btn bg-neutral-900 text-white hover:bg-neutral-800;
@@ -51,7 +66,7 @@ h3 {
     @apply mb-1.5 block text-sm font-medium text-neutral-700;
   }
   .rozet {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none;
   }
 }
 
@@ -67,3 +82,10 @@ h3 {
   to { opacity: 1; transform: translateY(0); }
 }
 .yazi-giris { animation: yaziGiris 700ms 420ms cubic-bezier(.2,.8,.2,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .arma-giris,
+  .yazi-giris {
+    animation: none;
+  }
+}

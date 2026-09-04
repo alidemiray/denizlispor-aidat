@@ -42,7 +42,7 @@ export default async function YonetimOzet() {
         sag={<CikisDugmesi />}
       />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         {onayBekleyen > 0 ? (
           <Link href="/yonetim/odemeler" className="mt-3 block">
             <div className="kart flex items-center gap-3 border-l-4 border-amber-400 px-4 py-4">

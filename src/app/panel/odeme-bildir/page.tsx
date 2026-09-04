@@ -41,7 +41,7 @@ export default async function OdemeBildirSayfasi() {
   return (
     <>
       <UstBaslik baslik="Ödeme bildir" altBaslik="Havale/EFT dekontunuzu yükleyin" geri="/panel" />
-      <div className="mx-auto w-full max-w-3xl px-4 pb-24 pt-4">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-28 pt-4">
         <OdemeBildirForm
           sporcular={sporcular}
           aidatlar={(aidatData ?? []) as Aidat[]}

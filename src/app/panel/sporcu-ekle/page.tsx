@@ -13,7 +13,7 @@ export default async function SporcuEkle() {
   return (
     <>
       <UstBaslik baslik="Sporcu ekle" altBaslik="Kulüp onayına gönderilir" geri="/panel" />
-      <div className="mx-auto w-full max-w-2xl px-4 pb-24 pt-4">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
         <SporcuVeliForm />
       </div>
     </>

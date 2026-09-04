@@ -36,7 +36,7 @@ function Form() {
       return;
     }
     const devam = params.get("devam");
-    router.replace(devam && devam.startsWith("/") ? devam : "/panel");
+    router.replace(devam && devam.startsWith("/") ? devam : "/git");
     router.refresh();
   }
 

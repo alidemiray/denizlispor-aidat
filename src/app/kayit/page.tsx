@@ -55,7 +55,7 @@ export default function KayitSayfasi() {
     }
 
     if (data.session) {
-      router.replace("/panel");
+      router.replace("/git");
       router.refresh();
       return;
     }

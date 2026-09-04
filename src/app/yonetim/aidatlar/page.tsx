@@ -53,7 +53,7 @@ export default async function AidatlarSayfasi({
     <>
       <UstBaslik baslik="Aidatlar" altBaslik="Dönem tahakkuku ve takip" geri="/yonetim" />
 
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-28">
         <form action={donemOlustur} className="kart mt-3 space-y-3 px-4 py-4">
           <p className="text-sm font-bold text-neutral-900">Yeni dönem tahakkuku</p>
           <p className="text-xs leading-relaxed text-neutral-500">
