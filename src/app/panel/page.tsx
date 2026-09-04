@@ -16,11 +16,7 @@ export default async function VeliPaneli() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  const { data: profil } = await supabase
-    .from("spor_profiller")
-    .select("ad_soyad, rol")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { data: profil } = await supabase.rpc("spor_profil");
 
   if (profil?.rol === "yonetici") redirect("/yonetim");
 

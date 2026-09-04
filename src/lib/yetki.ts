@@ -8,11 +8,9 @@ export async function yoneticiGerekli() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/giris");
 
-  const { data: profil } = await supabase
-    .from("spor_profiller")
-    .select("id, ad_soyad, rol")
-    .eq("id", user.id)
-    .maybeSingle();
+  // spor_profil(): profil satırı yoksa oluşturur, ilk kullanıcıyı yönetici yapar
+  // ve e-postayla eşleşen bekleyen sporcuları hesaba bağlar.
+  const { data: profil } = await supabase.rpc("spor_profil");
 
   if (profil?.rol !== "yonetici") redirect("/panel");
 
