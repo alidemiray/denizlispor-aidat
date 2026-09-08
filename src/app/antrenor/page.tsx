@@ -30,7 +30,9 @@ export default async function AntrenorAnaSayfa() {
   ).sort();
 
   const haftalik = antrenmanlar.filter((a) => haftaBasi(a.tarih) === buHafta);
-  const yoklamasiz = haftalik.filter((a) => !yoklamalar.some((y) => y.antrenman_id === a.id));
+  const yoklamasiz = haftalik.filter(
+    (a) => !yoklamalar.some((y) => y.antrenman_id === a.id),
+  );
   const sonUc = antrenmanlar.slice(0, 3);
 
   return (
@@ -44,7 +46,7 @@ export default async function AntrenorAnaSayfa() {
             className="flex h-9 items-center gap-1 rounded-full bg-white px-3 text-xs font-bold text-yesil-700"
           >
             <Ikon ad="artı" className="h-4 w-4" />
-            Ekle
+            Antrenman
           </Link>
         }
       >
@@ -64,7 +66,7 @@ export default async function AntrenorAnaSayfa() {
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         {yoklamasiz.length > 0 ? (
-          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-4 ring-1 ring-amber-500/20">
+          <div className="kart mt-4 border-l-4 border-amber-400 px-4 py-4">
             <p className="text-sm font-semibold text-neutral-900">
               {yoklamasiz.length} antrenmanın yoklaması alınmamış
             </p>
@@ -122,7 +124,7 @@ export default async function AntrenorAnaSayfa() {
         ) : (
           <div className="kart divide-y divide-neutral-100">
             {sonUc.map((a) => {
-              const katilim = yoklamalar.filter(
+              const sayi = yoklamalar.filter(
                 (y) => y.antrenman_id === a.id && (y.durum === "geldi" || y.durum === "gec"),
               ).length;
               return (
@@ -138,7 +140,7 @@ export default async function AntrenorAnaSayfa() {
                       {a.yas_grubu ? ` · ${a.yas_grubu}` : ""}
                     </p>
                   </div>
-                  <span className="text-xs font-semibold text-neutral-500">{katilim} katılım</span>
+                  <span className="text-xs font-semibold text-neutral-500">{sayi} katılım</span>
                   <span className="text-neutral-300">›</span>
                 </Link>
               );

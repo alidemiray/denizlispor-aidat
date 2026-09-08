@@ -4,6 +4,7 @@ import KaydetDugmesi from "@/components/KaydetDugmesi";
 import Ikon from "@/components/ui/Ikon";
 import { personelGerekli } from "@/lib/yetki";
 import { antrenmanKaydet } from "@/app/antrenor/actions";
+import { gunAdi } from "@/lib/format";
 import { ANTRENMAN_TURU, buHaftaMi, haftaAdi, haftaBasi } from "@/lib/antrenman";
 import type { Antrenman } from "@/lib/types";
 
@@ -26,11 +27,7 @@ export default async function Antrenmanlar({
   const antrenmanlar = (antrenmanData ?? []) as Antrenman[];
   const yoklamalar = (yoklamaData ?? []) as { antrenman_id: string; durum: string }[];
   const gruplar = Array.from(
-    new Set(
-      ((gruplarData ?? []) as { yas_grubu: string | null }[])
-        .map((g) => g.yas_grubu)
-        .filter(Boolean),
-    ),
+    new Set(((gruplarData ?? []) as { yas_grubu: string | null }[]).map((g) => g.yas_grubu).filter(Boolean)),
   ).sort() as string[];
 
   const haftalar = new Map<string, Antrenman[]>();
@@ -43,7 +40,11 @@ export default async function Antrenmanlar({
 
   return (
     <>
-      <UstBaslik baslik="Antrenmanlar" altBaslik={`${antrenmanlar.length} kayıt`} geri="/antrenor" />
+      <UstBaslik
+        baslik="Antrenmanlar"
+        altBaslik={`${antrenmanlar.length} kayıt`}
+        geri="/antrenor"
+      />
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         <details open={sp.yeni === "1"} className="kart mt-4 overflow-hidden">
@@ -151,7 +152,9 @@ export default async function Antrenmanlar({
                         </span>
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-neutral-900">{a.baslik}</p>
+                        <p className="truncate text-sm font-semibold text-neutral-900">
+                          {a.baslik}
+                        </p>
                         <p className="truncate text-xs text-neutral-500">
                           {ANTRENMAN_TURU[a.tur] ?? a.tur}
                           {a.yas_grubu ? ` · ${a.yas_grubu}` : ""}

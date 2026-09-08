@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import UstBaslik from "@/components/UstBaslik";
-import { createClient } from "@/lib/supabase/server";
+import { paraEkraniGerekli } from "@/lib/yetki";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -31,11 +31,7 @@ export default async function AidatAkisi({
 }: {
   searchParams: Promise<{ donem?: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/giris");
+  const { supabase } = await paraEkraniGerekli();
 
   const sp = await searchParams;
 

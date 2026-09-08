@@ -4,23 +4,26 @@ import Ikon from "@/components/ui/Ikon";
 import { oturum } from "@/lib/yetki";
 import { gunAdi, tl } from "@/lib/format";
 import { ANTRENMAN_TURU, haftaBasi } from "@/lib/antrenman";
+import { anaEkranYolu, paraGorebilirMi, personelMi, rolAdi, yoneticiMi } from "@/lib/roller";
 import type { Aidat, Antrenman, Sporcu, Yoklama } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function VeliPaneli() {
   const { supabase, user, profil, rol } = await oturum();
+  const paraGorunur = paraGorebilirMi(rol);
+  const sporcuHesabi = rol === "sporcu";
 
   const { data: sporcularData } = await supabase
     .from("spor_sporcular")
     .select("*")
-    .eq("veli_id", user.id)
+    .or(`veli_id.eq.${user.id},sporcu_kullanici_id.eq.${user.id}`)
     .order("ad");
   const sporcular = (sporcularData ?? []) as Sporcu[];
   const idler = sporcular.map((s) => s.id);
 
   const [{ data: aidatData }, { data: yoklamaData }, { data: antrenmanData }] = await Promise.all([
-    idler.length
+    idler.length && paraGorunur
       ? supabase.from("spor_aidatlar").select("*").in("sporcu_id", idler)
       : Promise.resolve({ data: [] as Aidat[] }),
     idler.length
@@ -42,11 +45,14 @@ export default async function VeliPaneli() {
     for (const l of imzali ?? []) if (l.path && l.signedUrl) fotolar.set(l.path, l.signedUrl);
   }
 
-  const toplamBorc = aidatlar
-    .filter((a) => a.durum === "bekliyor")
-    .reduce((t, a) => t + Number(a.tutar), 0);
+  const bekleyenler = aidatlar.filter((a) => a.durum === "bekliyor");
+  const toplamBorc = bekleyenler.reduce((t, a) => t + Number(a.tutar), 0);
+  const bugun = new Date().toISOString().slice(0, 10);
+  const gecikmis = bekleyenler.filter(
+    (a) => a.son_odeme_tarihi && a.son_odeme_tarihi < bugun,
+  ).length;
 
-  const buHafta = haftaBasi(new Date().toISOString().slice(0, 10));
+  const buHafta = haftaBasi(bugun);
   const buHaftaki = antrenmanlar.filter((a) => haftaBasi(a.tarih) === buHafta);
 
   const toplamYoklama = yoklamalar.length;
@@ -58,15 +64,13 @@ export default async function VeliPaneli() {
       )
     : null;
 
-  const ad = profil?.ad_soyad?.split(" ")[0] ?? "Merhaba";
+  const ilkAd = profil?.ad_soyad?.trim().split(" ")[0];
 
   return (
     <>
       <UstBaslik
-        baslik={`Merhaba, ${ad}`}
-        altBaslik={
-          rol === "yonetici" ? "Kulüp yöneticisi" : rol === "antrenor" ? "Antrenör" : "Veli"
-        }
+        baslik={ilkAd ? `Merhaba, ${ilkAd}` : "Merhaba"}
+        altBaslik={rolAdi(rol)}
         sag={
           <Link
             href="/panel/hesap"
@@ -79,7 +83,7 @@ export default async function VeliPaneli() {
       >
         <div className="grid grid-cols-3 gap-2">
           {[
-            { ad: "Sporcu", deger: String(sporcular.length) },
+            { ad: sporcuHesabi ? "Kayıt" : "Sporcu", deger: String(sporcular.length) },
             { ad: "Devam", deger: genelDevam === null ? "—" : `%${genelDevam}` },
             { ad: "Bu hafta", deger: `${buHaftaki.length} antr.` },
           ].map((k) => (
@@ -92,19 +96,19 @@ export default async function VeliPaneli() {
       </UstBaslik>
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
-        {rol !== "veli" ? (
+        {personelMi(rol) ? (
           <Link
-            href={rol === "yonetici" ? "/yonetim" : "/antrenor"}
+            href={anaEkranYolu(rol)}
             className="mt-4 flex items-center gap-3 rounded-2xl bg-neutral-900 px-4 py-3.5 text-white active:scale-[.99]"
           >
             <Ikon ad="kalkan" className="h-5 w-5 text-yesil-300" />
             <div className="flex-1">
               <p className="text-sm font-semibold">
-                {rol === "yonetici" ? "Kulüp yönetimi" : "Antrenör paneli"}
+                {yoneticiMi(rol) ? "Kulüp yönetimi" : "Antrenör paneli"}
               </p>
               <p className="text-xs text-white/55">
-                {rol === "yonetici"
-                  ? "Sporcular, aidatlar, maçlar, antrenmanlar"
+                {yoneticiMi(rol)
+                  ? "Sporcular, aidatlar, kasa, maçlar, antrenmanlar"
                   : "Antrenman günlüğü, yoklama, gelişim"}
               </p>
             </div>
@@ -112,13 +116,40 @@ export default async function VeliPaneli() {
           </Link>
         ) : null}
 
+        {paraGorunur && toplamBorc > 0 ? (
+          <Link href="/panel/aidat" className="mt-4 block">
+            <div
+              className={`flex items-start gap-3 rounded-2xl px-4 py-3.5 active:scale-[.99] ${
+                gecikmis > 0 ? "bg-red-50 text-red-900" : "bg-amber-50 text-amber-900"
+              }`}
+            >
+              <span className="mt-0.5">
+                <Ikon ad="cuzdan" className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">
+                  {gecikmis > 0 ? "Gecikmiş aidat borcunuz var" : "Ödenmemiş aidatınız var"}
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed">
+                  {bekleyenler.length} dönem · toplam <b>{tl(toplamBorc)}</b>
+                  {gecikmis > 0 ? ` · ${gecikmis} dönemin son ödeme tarihi geçti` : ""}. Ödeme
+                  bildirmek için dokunun.
+                </p>
+              </div>
+              <span className="opacity-40">›</span>
+            </div>
+          </Link>
+        ) : null}
+
         <div className="mb-2 mt-6 flex items-center justify-between px-1">
           <h2 className="text-sm font-bold uppercase tracking-wide text-neutral-500">
-            Sporcularım
+            {sporcuHesabi ? "Kaydım" : "Sporcularım"}
           </h2>
-          <Link href="/panel/sporcu-ekle" className="text-sm font-semibold text-yesil-700">
-            + Ekle
-          </Link>
+          {!sporcuHesabi ? (
+            <Link href="/panel/sporcu-ekle" className="text-sm font-semibold text-yesil-700">
+              + Ekle
+            </Link>
+          ) : null}
         </div>
 
         {sporcular.length === 0 ? (
@@ -126,14 +157,27 @@ export default async function VeliPaneli() {
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-yesil-50 text-yesil-700">
               <Ikon ad="futbol" className="h-7 w-7" />
             </span>
-            <p className="mt-3 font-semibold text-neutral-800">Hesabınıza tanımlı sporcu yok</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
-              Kulüp kaydınızda <b>{user.email}</b> adresi tanımlıysa sporcunuz kendiliğinden
-              görünür. Değilse buradan ekleyin, kayıt kulüp onayına gider.
+            <p className="mt-3 font-semibold text-neutral-800">
+              {sporcuHesabi ? "Hesabınıza bağlı kayıt bulunamadı" : "Hesabınıza tanımlı sporcu yok"}
             </p>
-            <Link href="/panel/sporcu-ekle" className="btn-birincil mt-4">
-              Sporcu ekle
-            </Link>
+            <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
+              {sporcuHesabi ? (
+                <>
+                  Kulüp kaydınızda <b>{user.email}</b> adresi tanımlandığında bilgileriniz burada
+                  görünür. Veliniz ya da kulüp bu adresi ekleyebilir.
+                </>
+              ) : (
+                <>
+                  Kulüp kaydınızda <b>{user.email}</b> adresi tanımlıysa sporcunuz kendiliğinden
+                  görünür. Değilse buradan ekleyin, kayıt kulüp onayına gider.
+                </>
+              )}
+            </p>
+            {!sporcuHesabi ? (
+              <Link href="/panel/sporcu-ekle" className="btn-birincil mt-4">
+                Sporcu ekle
+              </Link>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-3">
@@ -186,21 +230,38 @@ export default async function VeliPaneli() {
           </div>
         )}
 
-        {sporcular.length > 0 ? (
-          <Link href="/panel/aidat" className="mt-3 block">
-            <div className="kart flex items-center gap-3 px-4 py-3.5 active:scale-[.99]">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
-                <Ikon ad="cuzdan" className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-neutral-900">Aidat durumu</p>
-                <p className="text-xs text-neutral-500">
-                  {toplamBorc > 0 ? `${tl(toplamBorc)} bekleyen ödeme` : "Güncel borcunuz yok"}
-                </p>
+        {paraGorunur ? (
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Link href="/panel/aidat" className="block">
+              <div className="kart flex items-center gap-3 px-4 py-3.5 active:scale-[.99]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                  <Ikon ad="cuzdan" className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-neutral-900">Aidat durumu</p>
+                  <p className="truncate text-xs text-neutral-500">
+                    {toplamBorc > 0 ? `${tl(toplamBorc)} bekleyen ödeme` : "Güncel borcunuz yok"}
+                  </p>
+                </div>
+                <span className="text-neutral-300">›</span>
               </div>
-              <span className="text-neutral-300">›</span>
-            </div>
-          </Link>
+            </Link>
+
+            <Link href="/panel/kasa" className="block">
+              <div className="kart flex items-center gap-3 px-4 py-3.5 active:scale-[.99]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                  <Ikon ad="pano" className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-neutral-900">Kulüp kasası</p>
+                  <p className="truncate text-xs text-neutral-500">
+                    Havuz, kulübe aktarılan tutar, ödemeyenler
+                  </p>
+                </div>
+                <span className="text-neutral-300">›</span>
+              </div>
+            </Link>
+          </div>
         ) : null}
 
         <div className="mb-2 mt-7 flex items-center justify-between px-1">

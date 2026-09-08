@@ -45,6 +45,7 @@ export default async function AntrenmanDetay({
   >[];
   const yoklamalar = (yoklamaData ?? []) as Yoklama[];
   const harita = new Map(yoklamalar.map((y) => [y.sporcu_id, y]));
+
   const katilan = yoklamalar.filter((y) => y.durum === "geldi" || y.durum === "gec").length;
 
   return (
@@ -70,7 +71,7 @@ export default async function AntrenmanDetay({
         </div>
 
         <h2 className="mb-2 mt-6 px-1 text-sm font-bold uppercase tracking-wide text-neutral-500">
-          Günlük yoklama
+          Yoklama
         </h2>
 
         {sporcular.length === 0 ? (
@@ -193,8 +194,9 @@ export default async function AntrenmanDetay({
         </form>
 
         <p className="mt-4 px-1 text-xs leading-relaxed text-neutral-500">
-          Bu kayıt kulüp arşivine işlenir: yapılan her değişikliğin öncesi saklanır ve antrenman
-          kayıtları yalnızca kulüp yönetimi tarafından silinebilir.
+          Bu kayıt kulüp arşivine işlenir. Yapılan her değişikliğin öncesi saklanır ve
+          antrenman kayıtları yalnızca kulüp yönetimi tarafından silinebilir.
+          {rol === "yonetici" ? " Silme işlemini Yönetim → Arşiv üzerinden yapabilirsiniz." : ""}
         </p>
       </div>
     </>

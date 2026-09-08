@@ -54,7 +54,6 @@ export async function antrenmanKaydet(formData: FormData) {
       .eq("id", id);
     if (error) throw new Error(error.message);
     revalidatePath(`/antrenor/antrenmanlar/${id}`);
-    revalidatePath("/panel/antrenman");
     bildir(`/antrenor/antrenmanlar/${id}`, "Antrenman güncellendi");
   }
 

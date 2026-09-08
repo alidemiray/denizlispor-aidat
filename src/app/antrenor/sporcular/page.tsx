@@ -27,7 +27,11 @@ export default async function AntrenorSporcular() {
 
   return (
     <>
-      <UstBaslik baslik="Sporcular" altBaslik={`${sporcular.length} aktif sporcu`} geri="/antrenor" />
+      <UstBaslik
+        baslik="Sporcular"
+        altBaslik={`${sporcular.length} aktif sporcu`}
+        geri="/antrenor"
+      />
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         {sporcular.length === 0 ? (

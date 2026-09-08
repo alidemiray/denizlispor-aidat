@@ -1,4 +1,5 @@
-export type Rol = "veli" | "antrenor" | "yonetici";
+export type { Rol } from "@/lib/roller";
+import type { Rol } from "@/lib/roller";
 
 export type Profil = {
   id: string;
@@ -27,6 +28,8 @@ export type Sporcu = {
   veli_telefon: string | null;
   veli_eposta: string | null;
   veli_id: string | null;
+  sporcu_eposta: string | null;
+  sporcu_kullanici_id: string | null;
   aylik_aidat: number;
   durum: SporcuDurum;
   kayit_tarihi: string;

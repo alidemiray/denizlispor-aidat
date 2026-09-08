@@ -21,6 +21,7 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
   const [acilKisi, setAcilKisi] = useState(sporcu?.acil_kisi ?? "");
   const [acilTel, setAcilTel] = useState(sporcu?.acil_telefon ?? "");
   const [notlar, setNotlar] = useState(sporcu?.notlar ?? "");
+  const [sporcuMail, setSporcuMail] = useState(sporcu?.sporcu_eposta ?? "");
   const [hata, setHata] = useState<string | null>(null);
   const [bekle, setBekle] = useState(false);
 
@@ -42,6 +43,7 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
       p_acil_kisi: acilKisi,
       p_acil_telefon: acilTel,
       p_notlar: notlar,
+      p_sporcu_eposta: sporcuMail,
     };
 
     const { error } = duzenleme
@@ -154,6 +156,16 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
           <input id="acilKisi" className="alan" value={acilKisi}
             onChange={(e) => setAcilKisi(e.target.value)}
             placeholder="Adı ve yakınlığı" />
+        </div>
+
+        <div>
+          <label className="etiket" htmlFor="sporcuMail">Sporcunun kendi e-postası</label>
+          <input id="sporcuMail" type="email" className="alan" value={sporcuMail}
+            onChange={(e) => setSporcuMail(e.target.value)} placeholder="sporcu@ornek.com" />
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+            İsteğe bağlı. Sporcunuz bu adresle hesap açarsa kendi gelişim ekranını görür;
+            aidat ve kasa bilgileri sporcuya gösterilmez.
+          </p>
         </div>
 
         <div>

@@ -24,6 +24,7 @@ export default function GelisimBolumu({
     adet: yoklamalar.filter((y) => y.durum === d).length,
   }));
 
+  // Son 8 hafta devam oranı
   const haftalik = new Map<string, { toplam: number; geldi: number }>();
   for (const y of yoklamalar) {
     const h = haftaBasi(y.tarih);
@@ -36,9 +37,10 @@ export default function GelisimBolumu({
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
     .slice(-8)
     .map(([h, v]) => ({
-      etiket: new Date(h + "T00:00:00")
-        .toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
-        .replace(".", ""),
+      etiket: new Date(h + "T00:00:00").toLocaleDateString("tr-TR", {
+        day: "numeric",
+        month: "short",
+      }).replace(".", ""),
       deger: Math.round((v.geldi / v.toplam) * 100),
       ipucu: `${h} haftası: ${v.geldi}/${v.toplam} katılım`,
     }));
@@ -63,9 +65,10 @@ export default function GelisimBolumu({
     siraliOlcum
       .filter((o) => o[alan] !== null && o[alan] !== undefined)
       .map((o) => ({
-        etiket: new Date(o.tarih + "T00:00:00")
-          .toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
-          .replace(".", ""),
+        etiket: new Date(o.tarih + "T00:00:00").toLocaleDateString("tr-TR", {
+          day: "numeric",
+          month: "short",
+        }).replace(".", ""),
         deger: Number(o[alan]),
       }));
 

@@ -25,10 +25,15 @@ const ISLEM_ADI: Record<string, { ad: string; stil: string }> = {
 
 function ozet(k: Kayit) {
   const e = k.eski;
-  if (k.tablo === "spor_antrenmanlar") return [e.tarih, e.baslik].filter(Boolean).join(" · ");
-  if (k.tablo === "spor_sporcu_notlari") return String(e.icerik ?? "").slice(0, 160);
-  if (k.tablo === "spor_degerlendirmeler")
+  if (k.tablo === "spor_antrenmanlar") {
+    return [e.tarih, e.baslik].filter(Boolean).join(" · ");
+  }
+  if (k.tablo === "spor_sporcu_notlari") {
+    return String(e.icerik ?? "").slice(0, 160);
+  }
+  if (k.tablo === "spor_degerlendirmeler") {
     return `Dönem ${String(e.donem ?? "")} · ${String(e.yorum ?? "").slice(0, 120)}`;
+  }
   return JSON.stringify(e).slice(0, 160);
 }
 
@@ -54,9 +59,9 @@ export default async function Arsiv() {
         <div className="kart -mt-3 px-4 py-4">
           <p className="text-sm font-semibold text-neutral-900">Neden var?</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-500">
-            Antrenman günlüğü, antrenör notları ve değerlendirmeler kulübün hafızasıdır. Bir
-            antrenör ayrılırken içerik kaybolmasın diye bu kayıtları yalnızca yönetim silebilir;
-            silinen veya değiştirilen her kaydın önceki hali burada saklanır.
+            Antrenman günlüğü, antrenör notları ve değerlendirmeler kulübün hafızasıdır.
+            Bir antrenör ayrılırken içerik silinemesin diye bu kayıtları yalnızca yönetim
+            silebilir; silinen veya değiştirilen her kaydın önceki hali burada saklanır.
           </p>
         </div>
 
@@ -67,10 +72,7 @@ export default async function Arsiv() {
         ) : (
           <div className="kart mt-4 divide-y divide-neutral-100">
             {kayitlar.map((k) => {
-              const i = ISLEM_ADI[k.islem] ?? {
-                ad: k.islem,
-                stil: "bg-neutral-100 text-neutral-700",
-              };
+              const i = ISLEM_ADI[k.islem] ?? { ad: k.islem, stil: "bg-neutral-100 text-neutral-700" };
               return (
                 <div key={k.id} className="px-4 py-3.5">
                   <div className="flex items-center gap-2">
@@ -87,7 +89,9 @@ export default async function Arsiv() {
                       })}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-neutral-600">{ozet(k)}</p>
+                  <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-neutral-600">
+                    {ozet(k)}
+                  </p>
                 </div>
               );
             })}

@@ -55,7 +55,7 @@ function Form() {
           required
           value={eposta}
           onChange={(e) => setEposta(e.target.value)}
-          placeholder="veli@ornek.com"
+          placeholder="ornek@eposta.com"
         />
       </div>
 
@@ -92,8 +92,8 @@ function Form() {
 export default function GirisSayfasi() {
   return (
     <AuthKabuk
-      baslik="Veli girişi"
-      altBaslik="Sporcunuzun antrenmanlarını, gelişimini ve kulüp bilgilerini görmek için giriş yapın."
+      baslik="Giriş yap"
+      altBaslik="Denizlispor Altyapı sporcu takip uygulaması — veli, sporcu, antrenör ve yönetim girişi."
     >
       <Suspense fallback={null}>
         <Form />

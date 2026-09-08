@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ROL_ADI } from "@/lib/roller";
 
 function sayi(v: FormDataEntryValue | null) {
   const s = String(v ?? "").trim().replace(",", ".");
@@ -39,6 +40,7 @@ export async function sporcuKaydet(formData: FormData) {
     veli_ad_soyad: metin(formData.get("veli_ad_soyad")),
     veli_telefon: metin(formData.get("veli_telefon")),
     veli_eposta: metin(formData.get("veli_eposta"))?.toLowerCase() ?? null,
+    sporcu_eposta: metin(formData.get("sporcu_eposta"))?.toLowerCase() ?? null,
     aylik_aidat: sayi(formData.get("aylik_aidat")),
     durum: String(formData.get("durum") ?? "aktif"),
     notlar: metin(formData.get("notlar")),
@@ -217,10 +219,7 @@ export async function rolAta(formData: FormData) {
     .eq("id", String(formData.get("id")));
   if (error) throw new Error(error.message);
   revalidatePath("/yonetim/ayarlar");
-  bildir(
-    "/yonetim/ayarlar",
-    rol === "yonetici" ? "Yönetici yetkisi verildi" : "Yönetici yetkisi kaldırıldı",
-  );
+  bildir("/yonetim/ayarlar", `Rol güncellendi: ${ROL_ADI[rol] ?? rol}`);
 }
 
 export async function macKaydet(formData: FormData) {
@@ -328,4 +327,73 @@ export async function belgeSil(formData: FormData) {
 
   revalidatePath(`/yonetim/sporcular/${sporcuId}`);
   bildir(`/yonetim/sporcular/${sporcuId}`, "Belge silindi");
+}
+
+export async function kasaEkle(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("spor_kasa_hareketleri").insert({
+    tarih: String(formData.get("tarih")),
+    tur: String(formData.get("tur") ?? "aktarim"),
+    tutar: sayi(formData.get("tutar")),
+    kategori: metin(formData.get("kategori")),
+    aciklama: metin(formData.get("aciklama")),
+    ekleyen_id: user?.id ?? null,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/yonetim/kasa");
+  revalidatePath("/panel/kasa");
+  bildir("/yonetim/kasa", "Kasa hareketi eklendi");
+}
+
+export async function kasaSil(formData: FormData) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("spor_kasa_hareketleri")
+    .delete()
+    .eq("id", String(formData.get("id")));
+  if (error) throw new Error(error.message);
+  revalidatePath("/yonetim/kasa");
+  revalidatePath("/panel/kasa");
+  bildir("/yonetim/kasa", "Kasa hareketi silindi");
+}
+
+export async function rolTalebiKarar(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const id = String(formData.get("id"));
+  const kullaniciId = String(formData.get("kullanici_id"));
+  const talepRol = String(formData.get("talep_rol"));
+  const onay = String(formData.get("karar")) === "onayla";
+
+  const { error } = await supabase
+    .from("spor_rol_talepleri")
+    .update({
+      durum: onay ? "onaylandi" : "reddedildi",
+      karar_veren: user?.id ?? null,
+      karar_tarihi: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+
+  if (onay) {
+    const { error: rolHatasi } = await supabase
+      .from("spor_profiller")
+      .update({ rol: talepRol })
+      .eq("id", kullaniciId);
+    if (rolHatasi) throw new Error(rolHatasi.message);
+  }
+
+  revalidatePath("/yonetim/ayarlar");
+  bildir(
+    "/yonetim/ayarlar",
+    onay ? `${ROL_ADI[talepRol] ?? talepRol} yetkisi verildi` : "Talep reddedildi",
+  );
 }

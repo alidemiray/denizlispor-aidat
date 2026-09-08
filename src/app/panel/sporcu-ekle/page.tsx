@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 import UstBaslik from "@/components/UstBaslik";
 import SporcuVeliForm from "@/components/SporcuVeliForm";
-import { createClient } from "@/lib/supabase/server";
+import { oturum } from "@/lib/yetki";
 
 export const dynamic = "force-dynamic";
 
 export default async function SporcuEkle() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/giris");
+  const { rol } = await oturum();
+  if (rol === "sporcu") redirect("/panel");
 
   return (
     <>

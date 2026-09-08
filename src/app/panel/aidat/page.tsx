@@ -2,14 +2,14 @@ import Link from "next/link";
 import UstBaslik from "@/components/UstBaslik";
 import { AidatRozeti, OdemeRozeti } from "@/components/Rozet";
 import Ikon from "@/components/ui/Ikon";
-import { oturum } from "@/lib/yetki";
+import { paraEkraniGerekli } from "@/lib/yetki";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 import type { Aidat, Odeme, Sporcu } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function VeliAidat() {
-  const { supabase, user } = await oturum();
+  const { supabase, user } = await paraEkraniGerekli();
 
   const { data: sporcuData } = await supabase
     .from("spor_sporcular")

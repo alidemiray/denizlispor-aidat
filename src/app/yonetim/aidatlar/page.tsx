@@ -2,6 +2,7 @@ import UstBaslik from "@/components/UstBaslik";
 import { AidatRozeti } from "@/components/Rozet";
 import { yoneticiGerekli } from "@/lib/yetki";
 import { aidatDurumGuncelle, aidatSil, donemOlustur } from "@/app/yonetim/actions";
+import Ikon from "@/components/ui/Ikon";
 import { bugununDonemi, donemAdi, gecikmisMi, tl } from "@/lib/format";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
 
@@ -14,6 +15,14 @@ type Satir = {
   durum: string;
   son_odeme_tarihi: string | null;
   spor_sporcular: { ad: string; soyad: string; yas_grubu: string | null } | null;
+};
+
+type Eksik = {
+  sporcu_id: string;
+  ad: string;
+  soyad: string;
+  yas_grubu: string | null;
+  aylik_aidat: number;
 };
 
 export default async function AidatlarSayfasi({
@@ -42,6 +51,13 @@ export default async function AidatlarSayfasi({
   const { data } = await sorgu;
   const satirlar = (data ?? []) as unknown as Satir[];
 
+  // Bu dönemde borcu oluşmamış aktif sporcular
+  const { data: eksikData } = await supabase.rpc("spor_eksik_tahakkuk", {
+    p_donem: seciliDonem,
+  });
+  const eksikler = (eksikData ?? []) as unknown as Eksik[];
+  const eksikToplam = eksikler.reduce((t, e) => t + Number(e.aylik_aidat), 0);
+
   const toplam = satirlar.reduce((t, s) => t + Number(s.tutar), 0);
   const bekleyen = satirlar
     .filter((s) => s.durum === "bekliyor")
@@ -54,8 +70,68 @@ export default async function AidatlarSayfasi({
       <UstBaslik baslik="Aidatlar" altBaslik="Dönem tahakkuku ve takip" geri="/yonetim" />
 
       <div className="mx-auto w-full max-w-5xl px-4 pb-28">
+        {eksikler.length > 0 ? (
+          <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-4 text-amber-900">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5">
+                <Ikon ad="cuzdan" className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">
+                  {donemAdi(seciliDonem)} için {eksikler.length} sporcunun borcu oluşmamış
+                </p>
+                <p className="mt-1 text-xs leading-relaxed">
+                  Bu ay onaylanan ya da aidatı yeni tanımlanan sporcular. Aşağıdaki düğmeye
+                  basınca yalnızca eksik olanlara <b>{tl(eksikToplam)}</b> tutarında borç
+                  yazılır; mevcut kayıtlar bozulmaz.
+                </p>
+                <p className="mt-2 text-xs">
+                  {eksikler
+                    .slice(0, 6)
+                    .map((e) => `${e.ad} ${e.soyad}`)
+                    .join(", ")}
+                  {eksikler.length > 6 ? ` ve ${eksikler.length - 6} kişi daha` : ""}
+                </p>
+                <form action={donemOlustur} className="mt-3">
+                  <input type="hidden" name="donem" value={seciliDonem} />
+                  <KaydetDugmesi
+                    bekleyen="Oluşturuluyor…"
+                    className="rounded-xl bg-amber-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Eksik tahakkukları tamamla
+                  </KaydetDugmesi>
+                </form>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <details className="kart mt-3 px-4 py-4">
+          <summary className="cursor-pointer text-sm font-bold text-neutral-900">
+            Aidat akışı nasıl işliyor?
+          </summary>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-neutral-600">
+            <li>
+              Sporcu <b>aktif</b> yapılıp aylık aidatı girildiğinde, içinde bulunulan ay için
+              borcu kendiliğinden oluşur.
+            </li>
+            <li>
+              Geçmiş bir ay ya da toplu tahakkuk gerekiyorsa aşağıdaki formdan o ayı seçip
+              &quot;Tahakkuku oluştur&quot; deyin. Var olan kayıtlar tekrarlanmaz.
+            </li>
+            <li>
+              Veli ödemeyi yapıp dekontunu yükler; <b>Ödemeler</b> ekranında onayladığınızda
+              aidat &quot;ödendi&quot;ye döner ve kasaya işlenir.
+            </li>
+            <li>
+              Ödemeyecek bir sporcu varsa satırındaki <b>Muaf</b> düğmesini kullanın; borç
+              silinmeden takipten çıkar.
+            </li>
+          </ol>
+        </details>
+
         <form action={donemOlustur} className="kart mt-3 space-y-3 px-4 py-4">
-          <p className="text-sm font-bold text-neutral-900">Yeni dönem tahakkuku</p>
+          <p className="text-sm font-bold text-neutral-900">Dönem tahakkuku oluştur</p>
           <p className="text-xs leading-relaxed text-neutral-500">
             Seçilen ay için <b>aktif</b> ve aylık aidatı tanımlı tüm sporculara borç
             kaydı oluşturulur. Daha önce oluşturulmuş kayıtlar tekrarlanmaz.

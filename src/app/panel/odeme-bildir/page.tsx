@@ -1,17 +1,13 @@
 import UstBaslik from "@/components/UstBaslik";
 import OdemeBildirForm from "@/components/OdemeBildirForm";
-import { createClient } from "@/lib/supabase/server";
+import { paraEkraniGerekli } from "@/lib/yetki";
 import { redirect } from "next/navigation";
 import type { Aidat, Sporcu } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function OdemeBildirSayfasi() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/giris");
+  const { supabase, user } = await paraEkraniGerekli();
 
   const { data: sporcularData } = await supabase
     .from("spor_sporcular")

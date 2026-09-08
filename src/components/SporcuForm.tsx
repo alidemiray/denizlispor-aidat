@@ -88,6 +88,16 @@ export default function SporcuForm({ sporcu }: { sporcu?: Sporcu }) {
           bağlanır.
         </p>
 
+        <div>
+          <label className="etiket" htmlFor="sporcu_eposta">Sporcunun kendi e-postası</label>
+          <input id="sporcu_eposta" name="sporcu_eposta" type="email" className="alan"
+            placeholder="sporcu@ornek.com" defaultValue={sporcu?.sporcu_eposta ?? ""} />
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+            İsteğe bağlı. Sporcu bu adresle hesap açtığında kendi kaydını görür; veli ile
+            sporcu aynı kayıt üzerinde çalışır, birinin güncellemesi diğerine yansır.
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="etiket" htmlFor="acil_kisi">Acil durumda aranacak</label>

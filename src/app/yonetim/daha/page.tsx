@@ -7,11 +7,16 @@ import { yoneticiGerekli } from "@/lib/yetki";
 export const dynamic = "force-dynamic";
 
 const BOLUMLER: { yol: string; ad: string; aciklama: string; ikon: IkonAdi }[] = [
-  { yol: "/yonetim/maclar", ad: "Maçlar", aciklama: "Fikstür, skor ve oynanan süreler", ikon: "futbol" },
+  {
+    yol: "/yonetim/maclar",
+    ad: "Maçlar",
+    aciklama: "Fikstür, skor ve oynanan süreler",
+    ikon: "futbol",
+  },
   {
     yol: "/antrenor/antrenmanlar",
     ad: "Antrenman günlüğü",
-    aciklama: "Haftalık kayıtlar ve günlük yoklama",
+    aciklama: "Haftalık kayıtlar ve yoklama",
     ikon: "takvim",
   },
   {
@@ -21,9 +26,15 @@ const BOLUMLER: { yol: string; ad: string; aciklama: string; ikon: IkonAdi }[] =
     ikon: "grafik",
   },
   {
+    yol: "/yonetim/kasa",
+    ad: "Kasa",
+    aciklama: "Havuz, kulübe aktarım ve giderler",
+    ikon: "pano",
+  },
+  {
     yol: "/yonetim/ayarlar",
     ad: "Ayarlar ve yetkiler",
-    aciklama: "IBAN, iletişim, kullanıcı rolleri",
+    aciklama: "IBAN, iletişim, roller ve yetki talepleri",
     ikon: "ayar",
   },
   {
@@ -32,7 +43,12 @@ const BOLUMLER: { yol: string; ad: string; aciklama: string; ikon: IkonAdi }[] =
     aciklama: "Değiştirilen ve silinen kayıtların geçmişi",
     ikon: "arsiv",
   },
-  { yol: "/panel", ad: "Veli panelim", aciklama: "Kendi çocuğunuzun ekranı", ikon: "kisiler" },
+  {
+    yol: "/panel",
+    ad: "Veli panelim",
+    aciklama: "Kendi çocuğunuzun ekranı",
+    ikon: "kisiler",
+  },
 ];
 
 export default async function Daha() {
