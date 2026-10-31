@@ -115,6 +115,7 @@ export const YONETIM_MENUSU: Menu = {
     {
       baslik: "Kulüp",
       ogeler: [
+        { yol: "/yonetim/gruplar", ad: "Gruplar", ikon: "kisiler" },
         { yol: "/yonetim/ayarlar", ad: "Ayarlar ve yetkiler", ikon: "ayar" },
         { yol: "/yonetim/disa-aktar", ad: "Dışa aktar", ikon: "indir" },
         { yol: "/panel", ad: "Veli panelim", ikon: "kisiler" },
@@ -141,5 +142,16 @@ export function rozetEkle(menu: Menu, okunmamis: number): Menu {
       ...g,
       ogeler: g.ogeler.map((o) => (o.yol.endsWith("/bildirimler") ? { ...o, rozet: okunmamis } : o)),
     })),
+  };
+}
+
+/** Yalnızca admin ve kulüp başkanının gördüğü menü öğeleri */
+export const KULUP_GENELI_YOLLARI = ["/yonetim/gruplar"];
+
+export function menuSuz(menu: Menu, cikar: string[]): Menu {
+  if (!cikar.length) return menu;
+  return {
+    alt: menu.alt.filter((o) => !cikar.includes(o.yol)),
+    yan: menu.yan.map((g) => ({ ...g, ogeler: g.ogeler.filter((o) => !cikar.includes(o.yol)) })),
   };
 }

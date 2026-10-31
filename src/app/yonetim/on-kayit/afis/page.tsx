@@ -3,14 +3,18 @@ import QRCode from "qrcode";
 import YazdirDugmesi from "@/components/YazdirDugmesi";
 import GeriDugmesi from "@/components/GeriDugmesi";
 import { yoneticiGerekli } from "@/lib/yetki";
+import { gruplarim, seciliGrup } from "@/lib/grup";
 import { KULUP, KULUP_MANSET } from "@/kulup";
 
 export const dynamic = "force-dynamic";
 
 /** A4 dikey ön kayıt afişi: yazdırılır ya da PDF kaydedilir. Kulüp renkleri yapılandırmadan gelir. */
 export default async function Afis() {
-  await yoneticiGerekli();
-  const baglanti = `${KULUP.yayin.adres.replace(/\/$/, "")}/basvuru`;
+  const { supabase } = await yoneticiGerekli();
+  // Birden çok grup varsa her grubun kendi başvuru bağlantısı / QR'ı olur
+  const gruplar = await gruplarim(supabase);
+  const grup = gruplar.length > 1 ? seciliGrup(gruplar) : null;
+  const baglanti = `${KULUP.yayin.adres.replace(/\/$/, "")}/basvuru${grup ? `?grup=${grup.kod}` : ""}`;
   const qr = await QRCode.toString(baglanti, {
     type: "svg",
     margin: 0,
@@ -46,7 +50,7 @@ export default async function Afis() {
         </header>
 
         <section className="relative mt-[9%] px-[8%]">
-          <p className="font-mono text-[clamp(8px,2.4vw,12px)] tracking-[0.16em] text-yesil-500 print:text-[11pt]">ÖN KAYIT AÇIK</p>
+          <p className="font-mono text-[clamp(8px,2.4vw,12px)] tracking-[0.16em] text-yesil-500 print:text-[11pt]">{grup ? `${grup.ad.toLocaleUpperCase("tr-TR")} · ` : ""}ÖN KAYIT AÇIK</p>
           <h1 className="manset mt-[2%] text-[clamp(40px,14vw,72px)] leading-[0.88] print:text-[64pt]">
             Sahaya
             <br />

@@ -4,10 +4,12 @@ import { KULUP } from "@/kulup";
 
 export const metadata = { title: `Altyapıya ön kayıt · ${KULUP.kisaAd}` };
 
-const DEVAM = "/panel/sporcu-ekle";
-
-/** QR afişinden açılan herkese açık sayfa. Veri yazmaz; veliyi hesap açma / girişe yönlendirir. */
-export default function Basvuru() {
+/** QR afişinden açılan herkese açık sayfa. Veri yazmaz; veliyi hesap açma / girişe yönlendirir.
+ *  ?grup=u14 → başvuru o gruba gider (kod veritabanında doğrulanır). */
+export default async function Basvuru({ searchParams }: { searchParams: Promise<{ grup?: string }> }) {
+  const { grup: hamGrup } = await searchParams;
+  const grup = /^[a-z0-9][a-z0-9-]{0,23}$/.test(hamGrup ?? "") ? hamGrup! : null;
+  const DEVAM = `/panel/sporcu-ekle${grup ? `?grup=${grup}` : ""}`;
   return (
     <AuthKabuk
       baslik="Altyapıya ön kayıt"
@@ -32,7 +34,7 @@ export default function Basvuru() {
       </ol>
 
       <div className="mt-7 space-y-2.5">
-        <Link href={`/kayit?basvuru=1&devam=${encodeURIComponent(DEVAM)}`} className="btn-birincil w-full">
+        <Link href={`/kayit?basvuru=1${grup ? `&grup=${grup}` : ""}&devam=${encodeURIComponent(DEVAM)}`} className="btn-birincil w-full">
           Başvuruya başla
         </Link>
         <Link href={`/giris?devam=${encodeURIComponent(DEVAM)}`} className="btn-ikincil w-full">

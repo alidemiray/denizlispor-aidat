@@ -5,7 +5,7 @@ import BildirimZili from "@/components/BildirimZili";
 import { oturum } from "@/lib/yetki";
 import { gunAdi, tl } from "@/lib/format";
 import { ANTRENMAN_TURU, haftaBasi } from "@/lib/antrenman";
-import { anaEkranYolu, paraGorebilirMi, personelMi, rolAdi, yoneticiMi } from "@/lib/roller";
+import { anaEkranYolu, kasaGorebilirMi, paraGorebilirMi, personelMi, rolAdi, yoneticiMi } from "@/lib/roller";
 import type { Aidat, Antrenman, Sporcu, Yoklama } from "@/lib/types";
 import { KULUP } from "@/kulup";
 import { duyurulariGetir } from "@/lib/duyuru";
@@ -327,6 +327,7 @@ export default async function VeliPaneli() {
               </div>
             </Link>
 
+{kasaGorebilirMi(rol) ? (
             <Link href="/panel/kasa" className="block">
               <div className="kart flex items-center gap-3 px-4 py-3.5 active:scale-[.99]">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
@@ -341,6 +342,7 @@ export default async function VeliPaneli() {
                 <span className="text-neutral-300">›</span>
               </div>
             </Link>
+            ) : null}
           </div>
         ) : null}
 

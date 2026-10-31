@@ -5,8 +5,18 @@ import { useState } from "react";
 import Uyari from "@/components/Uyari";
 import { createClient } from "@/lib/supabase/client";
 import { MEVKILER, type Sporcu } from "@/lib/types";
+import type { KayitGrubu } from "@/lib/grup";
 
-export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
+export default function SporcuVeliForm({
+  sporcu,
+  gruplar = [],
+  varsayilanGrup,
+}: {
+  sporcu?: Sporcu;
+  /** Birden çok grup kayda açıksa veli grubu seçer (U13, U14…) */
+  gruplar?: KayitGrubu[];
+  varsayilanGrup?: string | null;
+}) {
   const router = useRouter();
   const duzenleme = Boolean(sporcu);
 
@@ -22,12 +32,20 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
   const [acilTel, setAcilTel] = useState(sporcu?.acil_telefon ?? "");
   const [notlar, setNotlar] = useState(sporcu?.notlar ?? "");
   const [sporcuMail, setSporcuMail] = useState(sporcu?.sporcu_eposta ?? "");
+  const grupSecimi = !sporcu && gruplar.length > 1;
+  const [grup, setGrup] = useState(
+    gruplar.find((g) => g.id === varsayilanGrup || g.kod === varsayilanGrup)?.id ?? "",
+  );
   const [hata, setHata] = useState<string | null>(null);
   const [bekle, setBekle] = useState(false);
 
   async function gonder(e: React.FormEvent) {
     e.preventDefault();
     setHata(null);
+    if (grupSecimi && !grup) {
+      setHata("Çocuğunuzun yaş grubunu seçin.");
+      return;
+    }
     setBekle(true);
     const supabase = createClient();
 
@@ -48,7 +66,7 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
 
     const { error } = duzenleme
       ? await supabase.rpc("spor_sporcu_veli_guncelle", { p_id: sporcu!.id, ...ortak })
-      : await supabase.rpc("spor_sporcu_on_kayit", ortak);
+      : await supabase.rpc("spor_sporcu_on_kayit", grupSecimi ? { ...ortak, p_grup: grup } : ortak);
 
     if (error) {
       setBekle(false);
@@ -76,6 +94,36 @@ export default function SporcuVeliForm({ sporcu }: { sporcu?: Sporcu }) {
           Girdiğiniz kayıt <b>onay bekliyor</b> olarak kulübe iletilir. Kulüp onaylayana
           kadar aidat tahakkuku yapılmaz.
         </Uyari>
+      ) : null}
+
+      {grupSecimi ? (
+        <div className="kart space-y-3 px-4 py-5">
+          <div>
+            <p className="text-sm font-bold text-neutral-900">Yaş grubu *</p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+              Her grubun antrenmanı, aidatı ve kasası ayrıdır. Emin değilseniz doğum yılına göre seçin;
+              kulüp gerekirse düzeltir.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Yaş grubu">
+            {gruplar.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                role="radio"
+                aria-checked={grup === g.id}
+                onClick={() => setGrup(g.id)}
+                className={`min-h-11 rounded-xl border px-4 text-sm font-bold transition-colors ${
+                  grup === g.id
+                    ? "border-yesil-500 bg-yesil-500 text-anametin"
+                    : "border-neutral-200 bg-white text-neutral-800"
+                }`}
+              >
+                {g.ad}
+              </button>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       <div className="kart space-y-4 px-4 py-5">

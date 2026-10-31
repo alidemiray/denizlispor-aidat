@@ -5,6 +5,7 @@ import { redirect, RedirectType } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hataIsle, uyar } from "@/lib/eylem";
 import { ROL_ADI } from "@/lib/roller";
+import { gocYok } from "@/lib/ozellik";
 
 function sayi(v: FormDataEntryValue | null) {
   const s = String(v ?? "").trim().replace(",", ".");
@@ -224,16 +225,22 @@ export async function ayarKaydet(formData: FormData) {
     "sessiz_bas",
     "sessiz_bit",
   ].filter((a) => formData.has(a));
-  const satirlar = anahtarlar.map((a) => ({
-    anahtar: a,
-    deger: String(formData.get(a) ?? "").trim(),
-    guncellendi: new Date().toISOString(),
-  }));
+  const degerler = Object.fromEntries(
+    anahtarlar.map((a) => [a, String(formData.get(a) ?? "").trim()]),
+  );
 
-  const { error } = await supabase
-    .from("spor_ayarlar")
-    .upsert(satirlar, { onConflict: "anahtar" });
-  if (error) throw new Error(error.message);
+  // Gruplu kurulum: ödeme bilgileri ve aidat kuralları aktif gruba yazılır
+  const { error: rpcHatasi } = await supabase.rpc("spor_ayar_kaydet", { p_ayarlar: degerler });
+  if (rpcHatasi) {
+    if (!gocYok(rpcHatasi)) throw new Error(rpcHatasi.message);
+    const satirlar = anahtarlar.map((a) => ({
+      anahtar: a,
+      deger: degerler[a],
+      guncellendi: new Date().toISOString(),
+    }));
+    const { error } = await supabase.from("spor_ayarlar").upsert(satirlar, { onConflict: "anahtar" });
+    if (error) throw new Error(error.message);
+  }
 
   revalidatePath("/yonetim/ayarlar");
   revalidatePath("/panel/odeme-bildir");
@@ -243,13 +250,16 @@ export async function ayarKaydet(formData: FormData) {
 export async function rolAta(formData: FormData) {
   const supabase = await createClient();
   const rol = String(formData.get("rol"));
-  const { error } = await supabase
-    .from("spor_profiller")
-    .update({ rol })
-    .eq("id", String(formData.get("id")));
-  if (error) throw new Error(error.message);
+  const id = String(formData.get("id"));
+  const { error: rpcHatasi } = await supabase.rpc("spor_yetki_ver", { p_kullanici: id, p_rol: rol });
+  if (rpcHatasi) {
+    if (!gocYok(rpcHatasi)) uyar("/yonetim/ayarlar", rpcHatasi.message);
+    const { error } = await supabase.from("spor_profiller").update({ rol }).eq("id", id);
+    if (error) throw new Error(error.message);
+  }
   revalidatePath("/yonetim/ayarlar");
-  bildir("/yonetim/ayarlar", `Rol güncellendi: ${ROL_ADI[rol] ?? rol}`);
+  revalidatePath("/yonetim/gruplar");
+  bildir(String(formData.get("donus") || "/yonetim/ayarlar"), `Pozisyon güncellendi: ${ROL_ADI[rol] ?? rol}`);
 }
 
 export async function macKaydet(formData: FormData) {
@@ -395,31 +405,34 @@ export async function kasaSil(formData: FormData) {
 
 export async function rolTalebiKarar(formData: FormData) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const id = String(formData.get("id"));
   const kullaniciId = String(formData.get("kullanici_id"));
   const talepRol = String(formData.get("talep_rol"));
   const onay = String(formData.get("karar")) === "onayla";
 
-  const { error } = await supabase
-    .from("spor_rol_talepleri")
-    .update({
-      durum: onay ? "onaylandi" : "reddedildi",
-      karar_veren: user?.id ?? null,
-      karar_tarihi: new Date().toISOString(),
-    })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-
-  if (onay) {
-    const { error: rolHatasi } = await supabase
-      .from("spor_profiller")
-      .update({ rol: talepRol })
-      .eq("id", kullaniciId);
-    if (rolHatasi) throw new Error(rolHatasi.message);
+  const { error: rpcHatasi } = await supabase.rpc("spor_rol_talebi_karar", { p_talep: id, p_onay: onay });
+  if (rpcHatasi) {
+    if (!gocYok(rpcHatasi)) uyar("/yonetim/ayarlar", rpcHatasi.message);
+    // Göç öncesi eski akış
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("spor_rol_talepleri")
+      .update({
+        durum: onay ? "onaylandi" : "reddedildi",
+        karar_veren: user?.id ?? null,
+        karar_tarihi: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    if (onay) {
+      const { error: rolHatasi } = await supabase
+        .from("spor_profiller")
+        .update({ rol: talepRol })
+        .eq("id", kullaniciId);
+      if (rolHatasi) throw new Error(rolHatasi.message);
+    }
   }
 
   revalidatePath("/yonetim/ayarlar");

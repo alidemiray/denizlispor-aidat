@@ -18,7 +18,7 @@ export default function UstBaslik({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden rounded-b-[28px] bg-siyah px-4 pb-6 pt-[max(0.9rem,env(safe-area-inset-top))] text-white shadow-lg shadow-black/20">
+    <header className="ust-baslik relative overflow-hidden rounded-b-[28px] bg-siyah px-4 pb-6 pt-[max(0.9rem,env(safe-area-inset-top))] text-white shadow-lg shadow-black/20">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full border border-yesil-500/25"

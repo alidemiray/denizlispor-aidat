@@ -136,3 +136,10 @@ summary::-webkit-details-marker {
   @page { size: A4; margin: 12mm; }
   body:has(.karne-kagit) { background: #fff !important; }
 }
+
+/* Grup seçici şeridi telefonda başlığın üstünde: başlık güvenli alanı ikinci kez eklemez */
+@media (max-width: 1023px) {
+  .grup-serit-var .ust-baslik {
+    padding-top: 0.5rem;
+  }
+}

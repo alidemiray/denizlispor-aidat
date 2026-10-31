@@ -1,6 +1,6 @@
 import UstBaslik from "@/components/UstBaslik";
 import { SutunGrafik } from "@/components/ui/Grafik";
-import { paraEkraniGerekli } from "@/lib/yetki";
+import { kasaEkraniGerekli } from "@/lib/yetki";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ const TUR_ADI: Record<string, string> = {
 };
 
 export default async function VeliKasa() {
-  const { supabase } = await paraEkraniGerekli();
+  const { supabase } = await kasaEkraniGerekli();
 
   const [{ data: ozetData }, { data: hareketData }, { data: odemeyenData }] = await Promise.all([
     supabase.rpc("spor_kasa_ozeti"),

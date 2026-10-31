@@ -16,7 +16,7 @@ Süre: bir oturum. Kod değişmez; yalnızca bir yapılandırma dosyası ve arma
 1. Supabase'te yeni proje; bölge kulübe yakın (Türkiye için Frankfurt ya da İrlanda).
 2. SQL Editor'da `supabase/migrations/` içindeki dosyaları ad sırasıyla çalıştırın: önce
    `00000000_taban.sql` (boş projeye tek seferde), sonra tarihli göçler. Bu sıra `npm test`
-   içinde her gönderimde boş bir veritabanında sınanır. İlk kayıt olan hesap otomatik yönetici olur.
+   içinde her gönderimde boş bir veritabanında sınanır. İlk kayıt olan hesap otomatik **admin** olur.
 3. Authentication › URL Configuration: Site URL = kulübün adresi; Redirect URLs = `https://<adres>/**`.
 4. Şifre kuralı ≥ 8 karakter, harf + rakam. E-posta onayı için özel SMTP tanımlayın.
 5. Proje kodunu ve **publishable** anahtarı JSON'daki `supabase` alanına yazın.
@@ -32,9 +32,12 @@ Süre: bir oturum. Kod değişmez; yalnızca bir yapılandırma dosyası ve arma
 
 ## 4. İlk hesaplar
 
-1. Kulüp yöneticisi uygulamadan hesap açar.
-2. Supabase'te o profilin rolü `yonetici` yapılır (tek seferlik).
-3. Yönetim › Ayarlar: IBAN, hesap sahibi, iletişim; aidat tutarları sporcu kaydında.
+1. Kulübün admini uygulamadan ilk hesabı açar (otomatik admin olur).
+2. Kulüp yaş gruplarını ayırmak istiyorsa: Yönetim › Gruplar'dan grupları açar (U11, U12…).
+   Tek grupta kalırsa tüm yaş grupları tek sistemde toplanır.
+3. Her grup için grubu seçip Yönetim › Ayarlar: IBAN, hesap sahibi, iletişim, aidat kuralları.
+4. Pozisyonlar (kulüp başkanı, grup yöneticisi, antrenör) Ayarlar › Kullanıcılar'dan; grup
+   pozisyonu seçili grupta geçerli olur.
 
 ## 5. Kontrol listesi
 

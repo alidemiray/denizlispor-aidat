@@ -6,6 +6,8 @@ import { rozetEkle, type Menu } from "@/lib/menuler";
 import { createClient } from "@/lib/supabase/server";
 import { okunmamisSayisi } from "@/lib/bildirim";
 import { rolAdi } from "@/lib/roller";
+import GrupSecici from "@/components/GrupSecici";
+import { gruplarim, seciliGrup } from "@/lib/grup";
 
 /**
  * Girişli ekranların ortak kabuğu.
@@ -23,17 +25,24 @@ export default async function Kabuk({
   kullanici: string;
   children: React.ReactNode;
 }) {
-  const okunmamis = await okunmamisSayisi(await createClient());
+  const supabase = await createClient();
+  const [okunmamis, gruplar] = await Promise.all([okunmamisSayisi(supabase), gruplarim(supabase)]);
   const yan = rozetEkle(menu, okunmamis).yan;
+  const grup = seciliGrup(gruplar);
+  const coklu = gruplar.length > 1;
   return (
-    <div className="kabuk min-h-dvh bg-zemin">
+    <div className={`kabuk min-h-dvh bg-zemin ${coklu ? "grup-serit-var" : ""}`}>
       <YanMenu
         gruplar={yan}
         kullanici={kullanici}
-        rolAdi={rolAdi(rol)}
+        rolAdi={rolAdi(rol) + (grup && coklu ? ` · ${grup.ad}` : "")}
+        ust={<GrupSecici gruplar={gruplar} gorunum="yan" />}
         alt={<CikisDugmesi tam />}
       />
-      <div className="lg:pl-64">{children}</div>
+      <div className="lg:pl-64">
+        <GrupSecici gruplar={gruplar} gorunum="ust" />
+        {children}
+      </div>
       <AltMenu ogeler={menu.alt} />
       <SurumNotlari rol={rol} />
     </div>

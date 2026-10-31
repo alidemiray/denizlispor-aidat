@@ -24,6 +24,29 @@
 - **Bölge kuralı:** Vercel bölgesi kulübün Supabase bölgesiyle aynı seçilir (İrlanda → `dub1`,
   Frankfurt → `fra1`); aksi halde her sunucu render'ı bir kıta yolculuğu ekler.
 
+## Kulüp içinde gruplar (20261104)
+
+Bir kulüp yaş gruplarını tek sistemde toplayabilir ya da ayırabilir. Grup = kendi sporcuları,
+aidatı, ödemeleri, **kasası**, ödeme bilgileri (IBAN), antrenman / maç / duyuru / sezon arşivi.
+
+| Rol | Kapsam |
+|---|---|
+| `admin` | Kulüp geneli: tüm gruplar, grup açma, sezon geçişi, her pozisyonu verme |
+| `baskan` | Kulüp geneli: tüm gruplar, pozisyon verme (admin/başkan hariç) |
+| `yonetici` | Grup yöneticisi: yalnızca üyesi olduğu grubun aidat, ödeme, kasası |
+| `antrenor`, `yardimci_antrenor` | Yalnızca üyesi olduğu grup; para ekranları kapalı |
+| `veli`, `sporcu` | Çocuğun / kendi kaydının grubu; kasa yalnızca kaydı onaylı veliye |
+
+- Her kullanıcının **aktif grubu** (`spor_profiller.aktif_grup_id`) vardır; `RESTRICTIVE` satır
+  kuralları her sorguyu aktif gruba daraltır. Kod sorgularını değiştirmeden grup içinde kalır.
+  Grup değiştirme: `spor_grup_sec()`; seçici `components/GrupSecici.tsx`.
+- Personel rolleri `spor_grup_uyeleri` (grup başına). Tek gruplu kurulumda profil rolü geçerli.
+- Ayarlar: kulüp geneli `spor_ayarlar` + gruba özel `spor_grup_ayarlari`; okuma `spor_ayarlari()`.
+- Aidat ve ödeme kaydı oluştuğu grubu saklar: sporcu taşınsa da kasa geçmişi yerinde kalır.
+- Sezon sonu: `spor_sezon_gecisi()` grupları topluca yeni adına geçirir (U15 → U16); grup bir
+  yaş kuşağıdır, velileri ve kasası onunla gider. Tek sporcu taşıma: `spor_sporcu_grup_degistir()`.
+- Testler: `tests/sql/gruplar.test.ts`.
+
 ## Beyaz etiket akışı
 
 ```

@@ -13,11 +13,14 @@ export default function YanMenu({
   gruplar,
   kullanici,
   rolAdi,
+  ust,
   alt,
 }: {
   gruplar: MenuGrubu[];
   kullanici: string;
   rolAdi: string;
+  /** Logonun altında (ör. grup seçici) */
+  ust?: React.ReactNode;
   alt?: React.ReactNode;
 }) {
   const yol = usePathname();
@@ -47,6 +50,8 @@ export default function YanMenu({
           </span>
         </span>
       </Link>
+
+      {ust}
 
       <nav className="ince-kaydirma flex-1 space-y-4 overflow-y-auto px-3 pb-4">
         {gruplar.map((g, i) => (

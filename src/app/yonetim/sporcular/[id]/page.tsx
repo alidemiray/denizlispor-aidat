@@ -3,6 +3,10 @@ import UstBaslik from "@/components/UstBaslik";
 import SporcuForm from "@/components/SporcuForm";
 import { AidatRozeti, OdemeRozeti } from "@/components/Rozet";
 import { yoneticiGerekli } from "@/lib/yetki";
+import { kulupGeneliMi } from "@/lib/roller";
+import KaydetDugmesi from "@/components/KaydetDugmesi";
+import { gruplarim } from "@/lib/grup";
+import { sporcuGrupDegistir } from "@/app/yonetim/gruplar/actions";
 import { belgeSil } from "@/app/yonetim/actions";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 import ZimmetForm from "@/components/ZimmetForm";
@@ -19,7 +23,7 @@ export default async function SporcuDuzenle({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await yoneticiGerekli();
+  const { supabase, rol } = await yoneticiGerekli();
 
   const { data } = await supabase
     .from("spor_sporcular")
@@ -58,6 +62,9 @@ export default async function SporcuDuzenle({
     for (const l of imzali ?? []) if (l.path && l.signedUrl) linkler.set(l.path, l.signedUrl);
   }
   const fotoUrl = sporcu.foto_yolu ? linkler.get(sporcu.foto_yolu) : null;
+  // Grubu değiştirme: admin ve kulüp başkanı (birden çok grup varsa)
+  const gruplar = kulupGeneliMi(rol) ? await gruplarim(supabase) : [];
+  const sporcuGrubu = (sporcu as Sporcu & { grup_id?: string }).grup_id;
 
   return (
     <>
@@ -87,6 +94,25 @@ export default async function SporcuDuzenle({
         ) : null}
 
         <SporcuForm sporcu={sporcu} />
+
+        {gruplar.length > 1 && sporcuGrubu ? (
+          <form action={sporcuGrupDegistir} className="kart mt-4 space-y-2 px-4 py-4">
+            <input type="hidden" name="sporcu" value={sporcu.id} />
+            <label className="etiket" htmlFor="grup">Grubu</label>
+            <div className="flex gap-2">
+              <select id="grup" name="grup" className="alan flex-1" defaultValue={sporcuGrubu}>
+                {gruplar.map((g) => (
+                  <option key={g.id} value={g.id}>{g.ad}</option>
+                ))}
+              </select>
+              <KaydetDugmesi bekleyen="…" className="btn-ikincil shrink-0 px-4">Taşı</KaydetDugmesi>
+            </div>
+            <p className="text-xs leading-relaxed text-neutral-500">
+              Sporcu yeni grubun antrenman, aidat ve kasasına geçer. Geçmiş aidat ve ödemeleri eski
+              grubun kasasında kalır.
+            </p>
+          </form>
+        ) : null}
 
         <h2 className="mb-2 mt-8 px-1 bolum-basligi">
           Belgeler ({belgeler.length})

@@ -1,3 +1,4 @@
+import { yoneticiMi } from "@/lib/roller";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import UstBaslik from "@/components/UstBaslik";
@@ -244,7 +245,7 @@ export default async function AntrenorSporcuDetay({
           <KaydetDugmesi>Ölçümü kaydet</KaydetDugmesi>
         </form>
 
-        {rol === "yonetici" ? (
+        {yoneticiMi(rol) ? (
           <Link
             href={`/yonetim/sporcular/${sporcu.id}`}
             className="btn-ikincil mt-6 w-full"

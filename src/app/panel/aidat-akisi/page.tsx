@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import UstBaslik from "@/components/UstBaslik";
-import { paraEkraniGerekli } from "@/lib/yetki";
+import { kasaEkraniGerekli } from "@/lib/yetki";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export default async function AidatAkisi({
 }: {
   searchParams: Promise<{ donem?: string }>;
 }) {
-  const { supabase } = await paraEkraniGerekli();
+  const { supabase } = await kasaEkraniGerekli();
 
   const sp = await searchParams;
 

@@ -1,3 +1,4 @@
+import { ayarlariOku } from "@/lib/grup";
 import UstBaslik from "@/components/UstBaslik";
 import OdemeBildirForm from "@/components/OdemeBildirForm";
 import { paraEkraniGerekli } from "@/lib/yetki";
@@ -26,13 +27,8 @@ export default async function OdemeBildirSayfasi() {
         .order("donem")
     : { data: [] as Aidat[] };
 
-  const { data: ayarData } = await supabase.from("spor_ayarlar").select("*");
-  const ayarlar = Object.fromEntries(
-    (ayarData ?? []).map((a: { anahtar: string; deger: string | null }) => [
-      a.anahtar,
-      a.deger ?? "",
-    ]),
-  );
+  const ayarlar = await ayarlariOku(supabase);
+
 
   return (
     <>

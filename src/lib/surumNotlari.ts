@@ -19,10 +19,31 @@ export type SurumNotu = {
 
 export const SURUM_NOTLARI: SurumNotu[] = [
   {
+    surum: "2026.11.01",
+    tarih: "1 Kasım 2026",
+    baslik: "Yaş grupları ayrı yönetiliyor",
+    roller: ["admin", "baskan", "yonetici"],
+    maddeler: [
+      "Her yaş grubunun sporcuları, aidatı, kasası ve ödeme bilgileri artık ayrı.",
+      "Admin ve kulüp başkanı üstteki seçiciden gruplar arasında geçer; grup yöneticisi yalnızca kendi grubunu görür.",
+      "Her grubun kendi ön kayıt bağlantısı ve QR'ı var. Sezon sonunda gruplar tek tuşla üst klasmana geçer.",
+    ],
+  },
+  {
+    surum: "2026.11.01v",
+    tarih: "1 Kasım 2026",
+    baslik: "Yaş grubu seçimi",
+    roller: ["veli"],
+    maddeler: [
+      "Çocuğunuzu kaydederken yaş grubunu seçiyorsunuz; aidat, kasa ve duyurular o grubun.",
+      "İki çocuğunuz farklı gruplardaysa üstteki seçiciden grup değiştirebilirsiniz.",
+    ],
+  },
+  {
     surum: "2026.10.31a",
     tarih: "31 Ekim 2026",
     baslik: "Yeni yönetim araçları",
-    roller: ["yonetici", "baskan"],
+    roller: ["admin", "yonetici", "baskan"],
     maddeler: [
       "Ön kayıt: başvuru QR'ı ve afişi, deneme dersi planlama, kesin kayıt tek ekranda.",
       "Excel'den aktar: sporcu listenizi kopyala-yapıştırla tek seferde ekleyin.",

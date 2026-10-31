@@ -23,6 +23,8 @@ export default function KayitSayfasi() {
   // Ön kayıt bağlantısından gelindiyse (/basvuru → /kayit?basvuru=1&devam=…) rol veli olarak sabitlenir
   const [basvuru, setBasvuru] = useState(false);
   const [devam, setDevam] = useState<string | null>(null);
+  // Grubun başvuru bağlantısından gelindiyse (?grup=u14) hesap o grupta açılır
+  const [grup, setGrup] = useState<string | null>(null);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -31,6 +33,8 @@ export default function KayitSayfasi() {
       setRol("veli");
     }
     setDevam(p.get("devam"));
+    const g = p.get("grup");
+    if (g && /^[a-z0-9][a-z0-9-]{0,23}$/.test(g)) setGrup(g);
   }, []);
 
   const secili = KAYIT_ROLLERI.find((r) => r.deger === rol)!;
@@ -55,7 +59,12 @@ export default function KayitSayfasi() {
       email: eposta.trim().toLowerCase(),
       password: sifre,
       options: {
-        data: { ad_soyad: adSoyad.trim(), telefon: telefon.trim(), talep_rol: rol },
+        data: {
+          ad_soyad: adSoyad.trim(),
+          telefon: telefon.trim(),
+          talep_rol: rol,
+          ...(grup ? { grup } : {}),
+        },
         emailRedirectTo:
           typeof window !== "undefined"
             ? `${window.location.origin}/git${devam ? `?devam=${encodeURIComponent(guvenliYol(devam))}` : ""}`

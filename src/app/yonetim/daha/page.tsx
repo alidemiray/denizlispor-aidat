@@ -3,6 +3,7 @@ import UstBaslik from "@/components/UstBaslik";
 import CikisDugmesi from "@/components/CikisDugmesi";
 import Ikon, { type IkonAdi } from "@/components/ui/Ikon";
 import { yoneticiGerekli } from "@/lib/yetki";
+import { kulupGeneliMi } from "@/lib/roller";
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +83,18 @@ const BOLUMLER: { yol: string; ad: string; aciklama: string; ikon: IkonAdi }[] =
 ];
 
 export default async function Daha() {
-  const { profil } = await yoneticiGerekli();
+  const { profil, rol } = await yoneticiGerekli();
+  const bolumler = kulupGeneliMi(rol)
+    ? [
+        {
+          yol: "/yonetim/gruplar",
+          ad: "Gruplar",
+          aciklama: "U11, U12… grupları, kayıt bağlantıları, sezon sonu üst klasmana geçiş",
+          ikon: "kisiler" as IkonAdi,
+        },
+        ...BOLUMLER,
+      ]
+    : BOLUMLER;
 
   return (
     <>
@@ -90,7 +102,7 @@ export default async function Daha() {
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
         <div className="kart -mt-3 divide-y divide-neutral-100">
-          {BOLUMLER.map((b) => (
+          {bolumler.map((b) => (
             <Link key={b.yol} href={b.yol} className="flex items-center gap-3.5 px-4 py-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-yesil-50 text-yesil-700">
                 <Ikon ad={b.ikon} className="h-5 w-5" />

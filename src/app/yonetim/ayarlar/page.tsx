@@ -1,7 +1,9 @@
 import UstBaslik from "@/components/UstBaslik";
 import { yoneticiGerekli } from "@/lib/yetki";
 import { ayarKaydet, rolAta, rolTalebiKarar } from "@/app/yonetim/actions";
-import { ROL_ADI } from "@/lib/roller";
+import { ROL_ADI, kulupGeneliMi } from "@/lib/roller";
+import { ayarlariOku, gruplarim, seciliGrup } from "@/lib/grup";
+import { gocYok } from "@/lib/ozellik";
 import { gunAdi } from "@/lib/format";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
 import { KULUP } from "@/kulup";
@@ -9,21 +11,33 @@ import { KULUP } from "@/kulup";
 export const dynamic = "force-dynamic";
 
 export default async function AyarlarSayfasi() {
-  const { supabase, user } = await yoneticiGerekli();
+  const { supabase, user, rol } = await yoneticiGerekli();
+  const gruplar = await gruplarim(supabase);
+  const gruplu = gruplar.length > 0; // 20261104 göçü uygulanmış
+  const grup = seciliGrup(gruplar);
+  const cokGrup = gruplar.length > 1;
 
-  const { data: ayarData } = await supabase.from("spor_ayarlar").select("*");
-  const a = Object.fromEntries(
-    (ayarData ?? []).map((x: { anahtar: string; deger: string | null }) => [
-      x.anahtar,
-      x.deger ?? "",
-    ]),
+  // Ayarlar: aktif grubun değerleri (gruba özel olan kulüp genelini ezer)
+  const a = await ayarlariOku(supabase);
+
+  // Kullanıcılar: aktif gruptaki rolleriyle
+  const kRpc = await supabase.rpc("spor_grup_kullanicilari");
+  const kullanicilar = (
+    kRpc.error && gocYok(kRpc.error)
+      ? (await supabase
+          .from("spor_profiller")
+          .select("id, eposta, ad_soyad, rol")
+          .order("created_at", { ascending: false })
+          .limit(200)).data
+      : kRpc.data
+  ) as { id: string; eposta: string | null; ad_soyad: string | null; rol: string; temel_rol?: string }[] | null;
+
+  // Pozisyonları admin ve kulüp başkanı belirler (göç öncesi eski kurulumda yönetici de)
+  const yetkiVerebilir = gruplu ? kulupGeneliMi(rol) : true;
+  const rolSecenekleri = Object.entries(ROL_ADI).filter(([deger]) =>
+    deger === "admin" || deger === "baskan" ? rol === "admin" || !gruplu : true,
   );
-
-  const { data: kullanicilar } = await supabase
-    .from("spor_profiller")
-    .select("id, eposta, ad_soyad, rol")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const grupEki = cokGrup && grup ? ` · ${grup.ad}` : "";
 
   const { data: talepData } = await supabase
     .from("spor_rol_talepleri")
@@ -43,17 +57,24 @@ export default async function AyarlarSayfasi() {
 
   return (
     <>
-      <UstBaslik baslik="Ayarlar" altBaslik="Kulüp bilgileri ve yetkiler" geri="/yonetim/daha" />
+      <UstBaslik baslik="Ayarlar" altBaslik={`Kulüp bilgileri ve yetkiler${grupEki}`} geri="/yonetim/daha" />
 
       <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
         <form action={ayarKaydet} className="kart space-y-4 px-4 py-5">
           <p className="text-sm font-bold text-neutral-900">
             Ödeme bilgileri (velilere gösterilir)
           </p>
+          {cokGrup && grup ? (
+            <p className="-mt-2 text-xs leading-relaxed text-neutral-500">
+              Banka, IBAN, iletişim ve aidat kuralları <b>{grup.ad}</b> grubuna özeldir; her grubun
+              kasası ayrıdır. Kulüp adını yalnızca admin ve kulüp başkanı değiştirir.
+            </p>
+          ) : null}
 
           <div>
             <label className="etiket" htmlFor="kulup_adi">Kulüp adı</label>
-            <input id="kulup_adi" name="kulup_adi" className="alan" defaultValue={a.kulup_adi} />
+            <input id="kulup_adi" name="kulup_adi" className="alan" defaultValue={a.kulup_adi}
+              readOnly={cokGrup && !kulupGeneliMi(rol)} />
           </div>
           <div>
             <label className="etiket" htmlFor="hesap_sahibi">Hesap sahibi</label>
@@ -209,6 +230,8 @@ export default async function AyarlarSayfasi() {
                   <span className="rozet bg-amber-100 text-amber-900">
                     {ROL_ADI[t.talep_rol] ?? t.talep_rol}
                   </span>
+                  {yetkiVerebilir ? (
+                    <>
                   <form action={rolTalebiKarar}>
                     <input type="hidden" name="id" value={t.id} />
                     <input type="hidden" name="kullanici_id" value={t.kullanici_id} />
@@ -218,6 +241,10 @@ export default async function AyarlarSayfasi() {
                       Onayla
                     </button>
                   </form>
+                    </>
+                  ) : (
+                    <span className="text-xs text-neutral-500">Admin onaylar</span>
+                  )}
                   <form action={rolTalebiKarar}>
                     <input type="hidden" name="id" value={t.id} />
                     <input type="hidden" name="kullanici_id" value={t.kullanici_id} />
@@ -238,11 +265,13 @@ export default async function AyarlarSayfasi() {
         </h2>
         <div className="kart mb-3 px-4 py-3.5">
           <p className="text-xs leading-relaxed text-neutral-600">
-            <b>Veli</b> yalnızca kendi sporcusunu görür. <b>Sporcu</b> kendi kaydını görür,
-            aidat ve kasa ekranlarına hiç giremez. <b>Antrenör</b> ve <b>yardımcı antrenör</b>{" "}
-            tüm sporcuları görür, antrenman günlüğü ve yoklama girer, gelişim notu yazar —
-            aidat ve ödeme bilgilerine erişemez. <b>Başkan</b> ve <b>yönetici</b> her şeye
-            erişir ve kayıt silebilir.
+            <b>Veli</b> yalnızca kendi sporcusunu görür; kaydı onaylanınca aidat ve kasayı görür.{" "}
+            <b>Sporcu</b> kendi kaydını görür, para ekranlarına giremez. <b>Antrenör</b> ve{" "}
+            <b>yardımcı antrenör</b> grubun sporcularını görür, antrenman, yoklama ve gelişim girer —
+            aidat, ödeme ve kasayı göremez. <b>Grup yöneticisi</b> grubun aidat, ödeme ve kasasını
+            yönetir. <b>Kulüp başkanı</b> ve <b>admin</b> tüm gruplara geçer; pozisyonları onlar
+            belirler, grup açmak ve başkan atamak yalnızca admindedir.
+            {cokGrup && grup ? <> Aşağıdaki pozisyonlar <b>{grup.ad}</b> grubu içindir.</> : null}
           </p>
         </div>
 
@@ -256,9 +285,9 @@ export default async function AyarlarSayfasi() {
                 </p>
                 <p className="truncate text-xs text-neutral-500">{k.eposta}</p>
               </div>
-              {k.id === user.id ? (
-                <span className="rozet bg-yesil-100 text-yesil-800">
-                  {ROL_ADI[k.rol] ?? k.rol} (siz)
+              {k.id === user.id || !yetkiVerebilir ? (
+                <span className={`rozet ${k.id === user.id ? "bg-yesil-100 text-yesil-800" : "bg-neutral-100 text-neutral-700"}`}>
+                  {ROL_ADI[k.rol] ?? k.rol}{k.id === user.id ? " (siz)" : ""}
                 </span>
               ) : (
                 <form action={rolAta} className="flex items-center gap-1.5">
@@ -269,7 +298,10 @@ export default async function AyarlarSayfasi() {
                     aria-label="Rol"
                     className="alan w-auto px-2 py-1.5 text-xs"
                   >
-                    {Object.entries(ROL_ADI).map(([deger, ad]) => (
+                    {(rolSecenekleri.some(([d]) => d === k.rol)
+                      ? rolSecenekleri
+                      : [...rolSecenekleri, [k.rol, ROL_ADI[k.rol] ?? k.rol] as [string, string]]
+                    ).map(([deger, ad]) => (
                       <option key={deger} value={deger}>{ad}</option>
                     ))}
                   </select>

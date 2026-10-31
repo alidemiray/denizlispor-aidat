@@ -7,6 +7,8 @@ export type Profil = {
   ad_soyad: string | null;
   telefon: string | null;
   rol: Rol;
+  /** 20261104 gruplar göçüyle gelir */
+  aktif_grup_id?: string | null;
 };
 
 export type SporcuDurum = "aktif" | "pasif" | "onay_bekliyor";

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { anaEkranYolu, antrenorMu, paraGorebilirMi, personelMi, yoneticiMi } from "@/lib/roller";
+import { anaEkranYolu, antrenorMu, kasaGorebilirMi, kulupGeneliMi, paraGorebilirMi, personelMi, yoneticiMi } from "@/lib/roller";
 import type { Profil } from "@/lib/types";
 
 /**
@@ -24,7 +24,7 @@ export const oturum = cache(async () => {
   return { supabase, user, profil, rol: (profil?.rol ?? "veli") as string };
 });
 
-/** Yönetici veya başkan */
+/** Admin, kulüp başkanı veya grup yöneticisi */
 export async function yoneticiGerekli() {
   const s = await oturum();
   if (!yoneticiMi(s.rol)) redirect(anaEkranYolu(s.rol));
@@ -42,6 +42,20 @@ export async function personelGerekli() {
 export async function paraEkraniGerekli() {
   const s = await oturum();
   if (!paraGorebilirMi(s.rol)) redirect("/panel");
+  return s;
+}
+
+/** Kulübün parası (kasa, aidat akışı): yönetim ve veli; antrenör ve sporcu giremez. */
+export async function kasaEkraniGerekli() {
+  const s = await oturum();
+  if (!kasaGorebilirMi(s.rol)) redirect(anaEkranYolu(s.rol));
+  return s;
+}
+
+/** Admin ya da kulüp başkanı (tüm gruplar) */
+export async function kulupGeneliGerekli() {
+  const s = await oturum();
+  if (!kulupGeneliMi(s.rol)) redirect(anaEkranYolu(s.rol));
   return s;
 }
 

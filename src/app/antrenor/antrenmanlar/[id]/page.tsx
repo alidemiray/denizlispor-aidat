@@ -1,3 +1,4 @@
+import { yoneticiMi } from "@/lib/roller";
 import { notFound } from "next/navigation";
 import UstBaslik from "@/components/UstBaslik";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
@@ -196,7 +197,7 @@ export default async function AntrenmanDetay({
         <p className="mt-4 px-1 text-xs leading-relaxed text-neutral-500">
           Bu kayıt kulüp arşivine işlenir. Yapılan her değişikliğin öncesi saklanır ve
           antrenman kayıtları yalnızca kulüp yönetimi tarafından silinebilir.
-          {rol === "yonetici" ? " Silme işlemini Yönetim → Arşiv üzerinden yapabilirsiniz." : ""}
+          {yoneticiMi(rol) ? " Silme işlemini Yönetim → Arşiv üzerinden yapabilirsiniz." : ""}
         </p>
       </div>
     </>

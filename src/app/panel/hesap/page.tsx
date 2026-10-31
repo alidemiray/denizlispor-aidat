@@ -1,3 +1,4 @@
+import { yoneticiMi } from "@/lib/roller";
 import Link from "next/link";
 import UstBaslik from "@/components/UstBaslik";
 import CikisDugmesi from "@/components/CikisDugmesi";
@@ -39,7 +40,7 @@ export default async function Hesap() {
     ikon: "belge",
   });
 
-  if (rol === "yonetici") {
+  if (yoneticiMi(rol)) {
     baglantilar.push({
       yol: "/yonetim",
       ad: "Kulüp yönetimi",
@@ -47,7 +48,7 @@ export default async function Hesap() {
       ikon: "kalkan",
     });
   }
-  if (rol === "antrenor") {
+  if (rol === "antrenor" || rol === "yardimci_antrenor") {
     baglantilar.push({
       yol: "/antrenor",
       ad: "Antrenör paneli",

@@ -6,6 +6,7 @@ import Ikon from "@/components/ui/Ikon";
 import { yoneticiGerekli } from "@/lib/yetki";
 import { gunAdi } from "@/lib/format";
 import { bugunTR } from "@/lib/sezon";
+import { gruplarim, seciliGrup } from "@/lib/grup";
 import { KULUP } from "@/kulup";
 import { adayKapat, denemeDersiPlanla, sporcuDurumGuncelle } from "@/app/yonetim/actions";
 
@@ -44,7 +45,10 @@ function denemeMetni(z: string) {
 
 export default async function OnKayit() {
   const { supabase } = await yoneticiGerekli();
-  const baglanti = `${KULUP.yayin.adres.replace(/\/$/, "")}/basvuru`;
+  // Birden çok grup varsa her grubun kendi başvuru bağlantısı / QR'ı olur
+  const gruplar = await gruplarim(supabase);
+  const grup = gruplar.length > 1 ? seciliGrup(gruplar) : null;
+  const baglanti = `${KULUP.yayin.adres.replace(/\/$/, "")}/basvuru${grup ? `?grup=${grup.kod}` : ""}`;
   const qr = await QRCode.toString(baglanti, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#111111", light: "#FFFFFF" } });
 
   // Göç (20261102) yoksa deneme alanları olmadan oku
@@ -185,7 +189,7 @@ export default async function OnKayit() {
 
           <aside className="space-y-3">
             <div className="kart px-4 py-4">
-              <p className="text-sm font-bold text-neutral-900">Başvuru bağlantısı</p>
+              <p className="text-sm font-bold text-neutral-900">{grup ? `${grup.ad} başvuru bağlantısı` : "Başvuru bağlantısı"}</p>
               <p className="mt-1 text-xs leading-relaxed text-neutral-500">
                 Veliler bu bağlantı ya da QR ile hesap açıp çocuklarını kaydeder; başvuru buraya düşer
                 ve size bildirim gelir.
