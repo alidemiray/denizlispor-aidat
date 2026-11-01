@@ -1,4 +1,5 @@
 import UstBaslik from "@/components/UstBaslik";
+import { benimSporcularim } from "@/lib/veli";
 import Ikon from "@/components/ui/Ikon";
 import { oturum } from "@/lib/yetki";
 import { gunAdi } from "@/lib/format";
@@ -22,7 +23,7 @@ export default async function VeliMaclar() {
 
   const [{ data: macData }, { data: sporcuData }] = await Promise.all([
     supabase.from("spor_maclar").select("*").order("tarih", { ascending: false }).limit(60),
-    supabase.from("spor_sporcular").select("id, ad, soyad").eq("veli_id", user.id),
+    benimSporcularim(supabase, user.id, "id, ad, soyad", { sporcuDahil: false }),
   ]);
 
   const maclar = (macData ?? []) as Mac[];

@@ -2,7 +2,7 @@ import UstBaslik from "@/components/UstBaslik";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
 import { SutunGrafik } from "@/components/ui/Grafik";
 import { yoneticiGerekli } from "@/lib/yetki";
-import { kasaEkle, kasaSil } from "@/app/yonetim/actions";
+import { kasaAcilisKaydet, kasaEkle, kasaSil } from "@/app/yonetim/actions";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,8 @@ type KasaSatir = {
   ek_gelir: number;
   aktarim: number;
   gider: number;
+  /** 20261107 göçüyle gelir */
+  acilis?: number;
 };
 
 type Hareket = {
@@ -28,7 +30,25 @@ const TUR_ADI: Record<string, string> = {
   aktarim: "Kulübe aktarım",
   gider: "Gider",
   gelir: "Ek gelir",
+  acilis: "Açılış bakiyesi",
 };
+
+function AcilisFormu({ tarih, tutar }: { tarih: string; tutar?: number }) {
+  return (
+    <form action={kasaAcilisKaydet} className="mt-3 grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+      <div>
+        <label className="etiket" htmlFor="acilis-tutar">Tutar (₺)</label>
+        <input id="acilis-tutar" name="tutar" inputMode="decimal" className="alan" required
+          defaultValue={tutar ?? ""} placeholder="0" />
+      </div>
+      <div>
+        <label className="etiket" htmlFor="acilis-tarih">Tarih</label>
+        <input id="acilis-tarih" name="tarih" type="date" className="alan" required defaultValue={tarih} />
+      </div>
+      <KaydetDugmesi bekleyen="…" className="btn-birincil px-4">Kaydet</KaydetDugmesi>
+    </form>
+  );
+}
 
 export default async function YonetimKasa() {
   const { supabase } = await yoneticiGerekli();
@@ -48,15 +68,18 @@ export default async function YonetimKasa() {
     ek_gelir: Number(s.ek_gelir),
     aktarim: Number(s.aktarim),
     gider: Number(s.gider),
+    acilis: Number(s.acilis ?? 0),
   }));
   const hareketler = (hareketData ?? []) as Hareket[];
 
   const toplamGelir = ozet.reduce((t, s) => t + s.tahsilat + s.ek_gelir, 0);
   const toplamAktarim = ozet.reduce((t, s) => t + s.aktarim, 0);
   const toplamGider = ozet.reduce((t, s) => t + s.gider, 0);
-  const havuz = toplamGelir - toplamAktarim - toplamGider;
+  const acilis = ozet.reduce((t, s) => t + (s.acilis ?? 0), 0);
+  const havuz = acilis + toplamGelir - toplamAktarim - toplamGider;
 
   const bugun = new Date().toISOString().slice(0, 10);
+  const acilisHareketi = hareketler.find((h) => h.tur === "acilis");
 
   const grafik = ozet
     .slice(0, 8)
@@ -79,6 +102,28 @@ export default async function YonetimKasa() {
       </UstBaslik>
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-28">
+        {acilisHareketi ? (
+          <details className="kart mt-4 px-4 py-3">
+            <summary className="flex cursor-pointer items-center gap-2 text-sm">
+              <span className="flex-1 text-neutral-600">
+                Açılış bakiyesi · {gunAdi(acilisHareketi.tarih)}
+              </span>
+              <span className="font-bold text-neutral-900">{tl(acilisHareketi.tutar)}</span>
+              <span className="text-xs font-semibold text-yesil-700">Düzelt</span>
+            </summary>
+            <AcilisFormu tarih={acilisHareketi.tarih} tutar={acilisHareketi.tutar} />
+          </details>
+        ) : (
+          <div className="mt-4 rounded-2xl bg-amber-50/80 px-4 py-4 ring-1 ring-amber-500/25">
+            <p className="text-sm font-bold text-neutral-900">Kasanın açılış bakiyesini girin</p>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+              Uygulamaya geçmeden önce kasada olan tutar. Havuz bu tutarla başlar; veliler kasa
+              ekranında &quot;Açılış bakiyesi&quot; olarak görür. Kasa boş başladıysa 0 girin.
+            </p>
+            <AcilisFormu tarih={bugun} />
+          </div>
+        )}
+
         <div className="mt-4 grid grid-cols-3 gap-2">
           {[
             { ad: "Tahsilat", deger: toplamGelir },
@@ -163,18 +208,20 @@ export default async function YonetimKasa() {
                 </div>
                 <span
                   className={`text-sm font-bold ${
-                    h.tur === "gelir" ? "text-yesil-700" : "text-neutral-700"
+                    h.tur === "gelir" || h.tur === "acilis" ? "text-yesil-700" : "text-neutral-700"
                   }`}
                 >
-                  {h.tur === "gelir" ? "+" : "−"}
+                  {h.tur === "gelir" || h.tur === "acilis" ? "+" : "−"}
                   {tl(h.tutar)}
                 </span>
+                {h.tur === "acilis" ? <span className="w-[38px]" /> : (
                 <form action={kasaSil}>
                   <input type="hidden" name="id" value={h.id} />
                   <button className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700">
                     Sil
                   </button>
                 </form>
+                )}
               </div>
             ))
           )}

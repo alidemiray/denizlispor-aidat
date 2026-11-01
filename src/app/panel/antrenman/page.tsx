@@ -1,4 +1,5 @@
 import UstBaslik from "@/components/UstBaslik";
+import { benimSporcularim } from "@/lib/veli";
 import Ikon from "@/components/ui/Ikon";
 import { oturum } from "@/lib/yetki";
 import { gunAdi } from "@/lib/format";
@@ -12,7 +13,7 @@ export default async function AntrenmanGunlugu() {
 
   const [{ data: antrenmanData }, { data: sporcuData }] = await Promise.all([
     supabase.from("spor_antrenmanlar").select("*").order("tarih", { ascending: false }).limit(160),
-    supabase.from("spor_sporcular").select("id, ad, soyad").eq("veli_id", user.id),
+    benimSporcularim(supabase, user.id, "id, ad, soyad", { sporcuDahil: false }),
   ]);
 
   const antrenmanlar = (antrenmanData ?? []) as Antrenman[];

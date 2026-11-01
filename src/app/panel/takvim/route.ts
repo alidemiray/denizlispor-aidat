@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { benimSporcularim } from "@/lib/veli";
 import { createClient } from "@/lib/supabase/server";
 import { ANTRENMAN_TURU } from "@/lib/antrenman";
 import { macBasligi } from "@/lib/mac";
@@ -22,10 +23,7 @@ export async function GET() {
   const bugun = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
 
   const [{ data: sporcular }, { data: antrenmanData }, { data: macData }] = await Promise.all([
-    supabase
-      .from("spor_sporcular")
-      .select("yas_grubu")
-      .or(`veli_id.eq.${kullanici},sporcu_kullanici_id.eq.${kullanici}`),
+    benimSporcularim(supabase, kullanici, "yas_grubu"),
     supabase.from("spor_antrenmanlar").select("*").gte("tarih", bugun).order("tarih").limit(200),
     supabase.from("spor_maclar").select("*").gte("tarih", bugun).order("tarih").limit(100),
   ]);

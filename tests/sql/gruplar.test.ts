@@ -195,3 +195,18 @@ describe("ikinci grup açılınca", () => {
     expect(await oturumla(db, yonetici15, `select aciklama from spor_kasa_hareketleri`)).toEqual([{ aciklama: "U15 top alımı" }]);
   });
 });
+
+describe("kasa açılış bakiyesi", () => {
+  it("grup yöneticisi açılışı girer, havuza eklenir; tek açılış; antrenör giremez", async () => {
+    await oturumla(db, yonetici15, `select spor_grup_sec($1)`, [u15]);
+    expect(await hataMesaji(oturumla(db, antrenor15, `select spor_kasa_acilis_kaydet(100, '2026-09-01')`))).toMatch(/yönetimi/);
+    await oturumla(db, yonetici15, `select spor_kasa_acilis_kaydet(2500, '2026-09-01')`);
+    await oturumla(db, yonetici15, `select spor_kasa_acilis_kaydet(3000, '2026-09-01', 'Eylül devri')`);
+    const r = await oturumla<{ a: string }>(db, yonetici15, `select sum(acilis) as a from spor_kasa_ozeti()`);
+    expect(Number(r[0].a)).toBe(3000);
+    expect(await oturumla(db, yonetici15, `select 1 from spor_kasa_hareketleri where tur = 'acilis'`)).toHaveLength(1);
+    // Başka grubun özetinde görünmez
+    const r14 = await oturumla<{ a: string }>(db, yonetici14, `select coalesce(sum(acilis), 0) as a from spor_kasa_ozeti()`);
+    expect(Number(r14[0].a)).toBe(0);
+  });
+});

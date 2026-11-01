@@ -11,6 +11,8 @@ type KasaSatir = {
   ek_gelir: number;
   aktarim: number;
   gider: number;
+  /** 20261107 göçüyle gelir */
+  acilis?: number;
 };
 
 type Hareket = {
@@ -36,6 +38,7 @@ const TUR_ADI: Record<string, string> = {
   aktarim: "Kulübe aktarım",
   gider: "Gider",
   gelir: "Ek gelir",
+  acilis: "Açılış bakiyesi",
 };
 
 export default async function VeliKasa() {
@@ -57,13 +60,15 @@ export default async function VeliKasa() {
     ek_gelir: Number(s.ek_gelir),
     aktarim: Number(s.aktarim),
     gider: Number(s.gider),
+    acilis: Number(s.acilis ?? 0),
   }));
   const hareketler = (hareketData ?? []) as Hareket[];
 
   const toplamGelir = ozet.reduce((t, s) => t + s.tahsilat + s.ek_gelir, 0);
   const toplamAktarim = ozet.reduce((t, s) => t + s.aktarim, 0);
   const toplamGider = ozet.reduce((t, s) => t + s.gider, 0);
-  const havuz = toplamGelir - toplamAktarim - toplamGider;
+  const acilis = ozet.reduce((t, s) => t + (s.acilis ?? 0), 0);
+  const havuz = acilis + toplamGelir - toplamAktarim - toplamGider;
 
   // Ödemeyenler dönem dönem gruplanır; en yeni üç dönem gösterilir.
   const odemeyenler = (odemeyenData ?? []) as Odemeyen[];
@@ -173,10 +178,10 @@ export default async function VeliKasa() {
                   </div>
                   <span
                     className={`text-sm font-bold ${
-                      h.tur === "gelir" ? "text-yesil-700" : "text-neutral-700"
+                      h.tur === "gelir" || h.tur === "acilis" ? "text-yesil-700" : "text-neutral-700"
                     }`}
                   >
-                    {h.tur === "gelir" ? "+" : "−"}
+                    {h.tur === "gelir" || h.tur === "acilis" ? "+" : "−"}
                     {tl(h.tutar)}
                   </span>
                 </div>

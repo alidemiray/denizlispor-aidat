@@ -5,6 +5,7 @@ import { sporcuDurumGuncelle } from "@/app/yonetim/actions";
 import { gunAdi, tl } from "@/lib/format";
 import type { Sporcu } from "@/lib/types";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
+import { sporcuBirlestir } from "@/app/yonetim/veli-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,17 @@ export default async function SporcularSayfasi() {
   for (const b of borclar ?? []) {
     borcHarita.set(b.sporcu_id, (borcHarita.get(b.sporcu_id) ?? 0) + Number(b.tutar));
   }
+
+  // Olası çift kayıtlar (ör. anne ve baba ayrı ayrı kaydetmiş); göç yoksa boş
+  const { data: ciftData } = await supabase.rpc("spor_olasi_ciftler");
+  const ciftler = (Array.isArray(ciftData) ? ciftData : []) as {
+    ana_id: string;
+    kopya_id: string;
+    ad: string;
+    soyad: string;
+    ana_veli: string | null;
+    kopya_veli: string | null;
+  }[];
 
   const bekleyenler = sporcular.filter((s) => s.durum === "onay_bekliyor");
   const digerleri = sporcular.filter((s) => s.durum !== "onay_bekliyor");
@@ -56,6 +68,38 @@ export default async function SporcularSayfasi() {
       />
 
       <div className="mx-auto w-full max-w-5xl px-4 pb-28">
+        {ciftler.length > 0 ? (
+          <section className="mt-4 rounded-2xl bg-amber-50/70 px-4 py-4 ring-1 ring-amber-500/20">
+            <h2 className="text-sm font-bold text-neutral-900">Olası çift kayıt ({ciftler.length})</h2>
+            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+              Aynı çocuk iki kez kaydedilmiş olabilir (çoğu zaman anne ve baba ayrı ayrı). Birleştirince
+              aidat, ödeme, yoklama, gelişim, belge ve zimmet tek kayda toplanır; ikinci kaydın velisi
+              ikinci veli olur. Aynı dönemin iki aidatı varsa tek aidata iner, ödemeler korunur.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {ciftler.map((c) => (
+                <li key={c.kopya_id} className="kart flex flex-wrap items-center gap-2 px-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-neutral-900">{c.ad} {c.soyad}</p>
+                    <p className="text-xs text-neutral-500">
+                      <Link href={`/yonetim/sporcular/${c.ana_id}`} className="underline">1. kayıt</Link>: {c.ana_veli || "veli yok"}
+                      {" · "}
+                      <Link href={`/yonetim/sporcular/${c.kopya_id}`} className="underline">2. kayıt</Link>: {c.kopya_veli || "veli yok"}
+                    </p>
+                  </div>
+                  <form action={sporcuBirlestir}>
+                    <input type="hidden" name="ana" value={c.ana_id} />
+                    <input type="hidden" name="kopya" value={c.kopya_id} />
+                    <KaydetDugmesi bekleyen="Birleştiriliyor…" className="rounded-lg bg-yesil-500 px-3 py-2 text-xs font-bold text-anametin">
+                      Tek kayıtta birleştir
+                    </KaydetDugmesi>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         {bekleyenler.length > 0 ? (
           <>
             <h2 className="mb-2 mt-4 px-1 text-sm font-bold uppercase tracking-wide text-amber-700">

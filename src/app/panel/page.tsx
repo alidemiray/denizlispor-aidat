@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { benimSporcularim } from "@/lib/veli";
 import UstBaslik from "@/components/UstBaslik";
 import Ikon from "@/components/ui/Ikon";
 import BildirimZili from "@/components/BildirimZili";
@@ -17,11 +18,7 @@ export default async function VeliPaneli() {
   const paraGorunur = paraGorebilirMi(rol);
   const sporcuHesabi = rol === "sporcu";
 
-  const { data: sporcularData } = await supabase
-    .from("spor_sporcular")
-    .select("*")
-    .or(`veli_id.eq.${user.id},sporcu_kullanici_id.eq.${user.id}`)
-    .order("ad");
+  const { data: sporcularData } = await benimSporcularim(supabase, user.id);
   const sporcular = (sporcularData ?? []) as Sporcu[];
   const idler = sporcular.map((s) => s.id);
 

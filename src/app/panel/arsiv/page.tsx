@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { benimSporcularim } from "@/lib/veli";
 import UstBaslik from "@/components/UstBaslik";
 import AniEkle from "@/components/AniEkle";
 import { oturum } from "@/lib/yetki";
@@ -18,10 +19,7 @@ export default async function Arsiv({ searchParams }: { searchParams: Promise<{ 
   const [{ data: macData }, { data: antData }, { data: cocukData }, arsiv] = await Promise.all([
     supabase.from("spor_maclar").select("*").order("tarih", { ascending: false }).limit(1000),
     supabase.from("spor_antrenmanlar").select("tarih, yas_grubu").limit(5000),
-    supabase
-      .from("spor_sporcular")
-      .select("id, ad")
-      .or(`veli_id.eq.${user.id},sporcu_kullanici_id.eq.${user.id}`),
+    benimSporcularim(supabase, user.id, "id, ad"),
     arsivGetir(supabase),
   ]);
   const maclar = (macData ?? []) as Mac[];

@@ -7,6 +7,7 @@ import { kulupGeneliMi } from "@/lib/roller";
 import KaydetDugmesi from "@/components/KaydetDugmesi";
 import { gruplarim } from "@/lib/grup";
 import { sporcuGrupDegistir } from "@/app/yonetim/gruplar/actions";
+import { ikinciVeliKaydet } from "@/app/yonetim/veli-actions";
 import { belgeSil } from "@/app/yonetim/actions";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 import ZimmetForm from "@/components/ZimmetForm";
@@ -70,7 +71,10 @@ export default async function SporcuDuzenle({
     <>
       <UstBaslik
         baslik={`${sporcu.ad} ${sporcu.soyad}`}
-        altBaslik={sporcu.veli_id ? "Veli hesabı bağlı ✓" : "Veli henüz kaydolmadı"}
+        altBaslik={
+          (sporcu.veli_id ? "Veli hesabı bağlı ✓" : "Veli henüz kaydolmadı") +
+          (sporcu.ikinci_veli_id ? " · 2. veli ✓" : "")
+        }
         geri="/yonetim/sporcular"
       />
       <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
@@ -94,6 +98,40 @@ export default async function SporcuDuzenle({
         ) : null}
 
         <SporcuForm sporcu={sporcu} />
+
+        {"ikinci_veli_eposta" in sporcu ? (
+          <form action={ikinciVeliKaydet} className="kart mt-4 space-y-3 px-4 py-4">
+            <input type="hidden" name="sporcu" value={sporcu.id} />
+            <div>
+              <p className="text-sm font-bold text-neutral-900">İkinci veli</p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+                Anne ve baba ikisi de bu kaydı görsün, aidatı ödeyebilsin, bildirim alsın.{" "}
+                {sporcu.ikinci_veli_id
+                  ? "Hesap bağlı ✓"
+                  : sporcu.ikinci_veli_eposta
+                    ? "Bu e-postayla hesap yok ya da onay bekliyor; kaydet'e basınca hesap varsa bağlanır."
+                    : "Birinci veli: " + (sporcu.veli_ad_soyad || sporcu.veli_eposta || "—")}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="sm:col-span-3">
+                <label className="etiket" htmlFor="iv-eposta">E-posta</label>
+                <input id="iv-eposta" name="eposta" type="email" className="alan"
+                  defaultValue={sporcu.ikinci_veli_eposta ?? ""} placeholder="ornek@eposta.com" />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="etiket" htmlFor="iv-ad">Ad soyad</label>
+                <input id="iv-ad" name="ad_soyad" className="alan" defaultValue={sporcu.ikinci_veli_ad_soyad ?? ""} />
+              </div>
+              <div>
+                <label className="etiket" htmlFor="iv-tel">Telefon</label>
+                <input id="iv-tel" name="telefon" className="alan" defaultValue={sporcu.ikinci_veli_telefon ?? ""} />
+              </div>
+            </div>
+            <KaydetDugmesi className="btn-ikincil w-full">İkinci veliyi kaydet</KaydetDugmesi>
+            <p className="text-[11px] text-neutral-500">E-postayı silip kaydederseniz ikinci veli kaldırılır.</p>
+          </form>
+        ) : null}
 
         {gruplar.length > 1 && sporcuGrubu ? (
           <form action={sporcuGrupDegistir} className="kart mt-4 space-y-2 px-4 py-4">

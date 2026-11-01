@@ -391,6 +391,22 @@ export async function kasaEkle(formData: FormData) {
   bildir("/yonetim/kasa", "Kasa hareketi eklendi");
 }
 
+export async function kasaAcilisKaydet(formData: FormData) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("spor_kasa_acilis_kaydet", {
+    p_tutar: sayi(formData.get("tutar")),
+    p_tarih: String(formData.get("tarih") ?? ""),
+  });
+  if (error) {
+    if (gocYok(error)) uyar("/yonetim/kasa", "Açılış bakiyesi için veritabanı güncellemesi bekleniyor (20261107).");
+    uyar("/yonetim/kasa", error.message);
+  }
+  revalidatePath("/yonetim/kasa");
+  revalidatePath("/panel/kasa");
+  revalidatePath("/yonetim");
+  bildir("/yonetim/kasa", "Açılış bakiyesi kaydedildi");
+}
+
 export async function kasaSil(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase

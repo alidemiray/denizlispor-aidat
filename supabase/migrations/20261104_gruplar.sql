@@ -799,7 +799,9 @@ as $$
    order by a.donem desc, s.yas_grubu nulls last, s.ad;
 $$;
 
-create or replace function public.spor_kasa_ozeti()
+-- 20261107 dönüş tipine açılış sütunu ekler; tekrar çalıştırmada çakışmasın diye önce düşürülür
+drop function if exists public.spor_kasa_ozeti();
+create function public.spor_kasa_ozeti()
 returns table (ay date, tahsilat numeric, ek_gelir numeric, aktarim numeric, gider numeric)
 language sql stable security definer set search_path = public
 as $$

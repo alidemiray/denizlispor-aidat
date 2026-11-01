@@ -6,6 +6,7 @@ import Uyari from "@/components/Uyari";
 import { createClient } from "@/lib/supabase/client";
 import { MEVKILER, type Sporcu } from "@/lib/types";
 import type { KayitGrubu } from "@/lib/grup";
+import { gocYok } from "@/lib/ozellik";
 
 export default function SporcuVeliForm({
   sporcu,
@@ -37,6 +38,9 @@ export default function SporcuVeliForm({
     gruplar.find((g) => g.id === varsayilanGrup || g.kod === varsayilanGrup)?.id ?? "",
   );
   const [hata, setHata] = useState<string | null>(null);
+  // Aynı grupta aynı ad-soyadla kayıt varsa (ör. diğer veli kaydetmiş) önce sorulur
+  const [benzer, setBenzer] = useState(false);
+  const [yineDe, setYineDe] = useState(false);
   const [bekle, setBekle] = useState(false);
 
   async function gonder(e: React.FormEvent) {
@@ -48,6 +52,25 @@ export default function SporcuVeliForm({
     }
     setBekle(true);
     const supabase = createClient();
+
+    if (!duzenleme && !yineDe) {
+      const { data: var_, error: kontrolHatasi } = await supabase.rpc("spor_benzer_kayit_var_mi", {
+        p_ad: ad,
+        p_soyad: soyad,
+        p_dogum: dogum || null,
+        p_grup: grupSecimi ? grup : null,
+      });
+      if (!kontrolHatasi && var_ === true) {
+        setBekle(false);
+        setBenzer(true);
+        return;
+      }
+      if (kontrolHatasi && !gocYok(kontrolHatasi)) {
+        setBekle(false);
+        setHata(kontrolHatasi.message);
+        return;
+      }
+    }
 
     const ortak = {
       p_ad: ad,
@@ -85,9 +108,55 @@ export default function SporcuVeliForm({
     router.refresh();
   }
 
+  async function baglanmaIstegi() {
+    setHata(null);
+    setBekle(true);
+    const { error } = await createClient().rpc("spor_ikinci_veli_istegi", {
+      p_ad: ad,
+      p_soyad: soyad,
+      p_dogum: dogum || null,
+      p_grup: grupSecimi ? grup : null,
+      p_not: veliAd ? `${veliAd}${veliTel ? ` · ${veliTel}` : ""}` : null,
+    });
+    if (error) {
+      setBekle(false);
+      setHata(error.message);
+      return;
+    }
+    router.replace(`/panel?kaydedildi=${encodeURIComponent("İsteğiniz kulübe iletildi; onaylanınca çocuğunuz burada görünür")}`);
+    router.refresh();
+  }
+
   return (
     <form onSubmit={gonder} className="space-y-5">
       {hata ? <Uyari>{hata}</Uyari> : null}
+
+      {benzer ? (
+        <div className="kart space-y-3 px-4 py-5 ring-1 ring-amber-500/30">
+          <p className="text-sm font-bold text-neutral-900">
+            {ad} {soyad} bu grupta zaten kayıtlı görünüyor
+          </p>
+          <p className="text-xs leading-relaxed text-neutral-500">
+            Çocuğunuzun annesi ya da babası kaydı daha önce açmış olabilir. Aynı çocuksa yeni kayıt
+            açmayın; sizi <b>ikinci veli</b> olarak bağlayalım. Çocuğu, aidatı ve antrenmanları aynı
+            kayıttan birlikte görürsünüz, aidat tek açılır.
+          </p>
+          <button type="button" className="btn-birincil w-full" disabled={bekle} onClick={baglanmaIstegi}>
+            {bekle ? "Gönderiliyor…" : "Aynı çocuk, beni ikinci veli olarak bağlayın"}
+          </button>
+          <button
+            type="button"
+            className="btn-ikincil w-full"
+            disabled={bekle}
+            onClick={() => {
+              setYineDe(true);
+              setBenzer(false);
+            }}
+          >
+            Farklı bir çocuk, yeni kayıt açacağım
+          </button>
+        </div>
+      ) : null}
 
       {!duzenleme ? (
         <Uyari tip="bilgi">

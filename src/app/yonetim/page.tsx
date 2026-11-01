@@ -1,3 +1,4 @@
+import { gruplarim } from "@/lib/grup";
 import Link from "next/link";
 import UstBaslik from "@/components/UstBaslik";
 import BildirimZili from "@/components/BildirimZili";
@@ -59,6 +60,12 @@ export default async function YonetimOzet() {
       .limit(3),
     arsivGetir(supabase),
   ]);
+  // Kasa açılış bakiyesi girilmemişse (gruplar göçünden sonra) yapılacaklara düşer
+  const gruplu = (await gruplarim(supabase)).length > 0;
+  const { data: acilisData } = gruplu
+    ? await supabase.from("spor_kasa_hareketleri").select("id").eq("tur", "acilis").limit(1)
+    : { data: [{ id: "" }] };
+  const acilisEksik = (acilisData ?? []).length === 0 ? 1 : 0;
 
   const sporcular = (sporcuData ?? []) as { id: string; ad: string; soyad: string; durum: string; yas_grubu: string | null; dogum_tarihi: string | null }[];
   const aidatlar = (aidatData ?? []) as { sporcu_id: string; donem: string; tutar: number; durum: string; son_odeme_tarihi: string | null }[];
@@ -109,6 +116,7 @@ export default async function YonetimOzet() {
     : [];
 
   const tumIsler: Is[] = [
+    { sayi: acilisEksik, baslik: "grubun kasa açılış bakiyesi girilmedi", aciklama: "Uygulamadan önce kasada olan tutarı girin", yol: "/yonetim/kasa", ikon: "pano", acil: true },
     { sayi: odemeOnayi, baslik: "ödeme bildirimi onay bekliyor", aciklama: "Dekontu inceleyip onaylayın", yol: "/yonetim/odemeler", ikon: "kontrol", acil: true },
     { sayi: eksikTahakkuk, baslik: `sporcunun ${donemAdi(donem)} borcu oluşmamış`, aciklama: "Eksik tahakkukları tek dokunuşla tamamlayın", yol: "/yonetim/aidatlar", ikon: "cuzdan", acil: true },
     { sayi: onayBekleyenSporcu, baslik: "yeni sporcu kaydı onay bekliyor", aciklama: "Deneme dersi planlayın ya da kesin kayda alın", yol: "/yonetim/on-kayit", ikon: "kisiler" },

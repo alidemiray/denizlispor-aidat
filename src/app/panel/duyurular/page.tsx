@@ -1,4 +1,5 @@
 import UstBaslik from "@/components/UstBaslik";
+import { benimSporcularim } from "@/lib/veli";
 import DuyuruKarti from "@/components/DuyuruKarti";
 import OkunduIsaretle from "@/components/OkunduIsaretle";
 import Ikon from "@/components/ui/Ikon";
@@ -11,10 +12,7 @@ export const metadata = { title: "Duyurular" };
 
 export default async function Duyurular() {
   const { supabase, user, rol } = await oturum();
-  const { data: sporcular } = await supabase
-    .from("spor_sporcular")
-    .select("yas_grubu")
-    .or(`veli_id.eq.${user.id},sporcu_kullanici_id.eq.${user.id}`);
+  const { data: sporcular } = await benimSporcularim<{ yas_grubu: string | null }>(supabase, user.id, "yas_grubu");
 
   const sonuc = await duyurulariGetir(supabase, {
     rol,

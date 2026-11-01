@@ -32,6 +32,11 @@ export type Sporcu = {
   veli_id: string | null;
   sporcu_eposta: string | null;
   sporcu_kullanici_id: string | null;
+  /** 20261106 göçüyle gelir: ikinci veli (anne ya da baba) */
+  ikinci_veli_id?: string | null;
+  ikinci_veli_eposta?: string | null;
+  ikinci_veli_ad_soyad?: string | null;
+  ikinci_veli_telefon?: string | null;
   aylik_aidat: number;
   /** 20261031 göçüyle gelir; göç yoksa tanımsız */
   indirim_orani?: number;

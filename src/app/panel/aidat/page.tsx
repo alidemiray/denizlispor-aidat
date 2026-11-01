@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { benimSporcularim } from "@/lib/veli";
 import UstBaslik from "@/components/UstBaslik";
 import { AidatRozeti, OdemeRozeti } from "@/components/Rozet";
 import { kalanTutar, kismiMi, odenenler } from "@/lib/aidat";
@@ -12,11 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function VeliAidat() {
   const { supabase, user } = await paraEkraniGerekli();
 
-  const { data: sporcuData } = await supabase
-    .from("spor_sporcular")
-    .select("*")
-    .eq("veli_id", user.id)
-    .order("ad");
+  const { data: sporcuData } = await benimSporcularim(supabase, user.id, "*", { sporcuDahil: false });
   const sporcular = (sporcuData ?? []) as Sporcu[];
   const idler = sporcular.map((s) => s.id);
 

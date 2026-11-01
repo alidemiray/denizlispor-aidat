@@ -1,4 +1,5 @@
 import { ayarlariOku } from "@/lib/grup";
+import { benimSporcularim } from "@/lib/veli";
 import UstBaslik from "@/components/UstBaslik";
 import OdemeBildirForm from "@/components/OdemeBildirForm";
 import { paraEkraniGerekli } from "@/lib/yetki";
@@ -10,11 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function OdemeBildirSayfasi() {
   const { supabase, user } = await paraEkraniGerekli();
 
-  const { data: sporcularData } = await supabase
-    .from("spor_sporcular")
-    .select("*")
-    .eq("veli_id", user.id)
-    .order("ad");
+  const { data: sporcularData } = await benimSporcularim(supabase, user.id, "*", { sporcuDahil: false });
   const sporcular = (sporcularData ?? []) as Sporcu[];
 
   const idler = sporcular.map((s) => s.id);

@@ -19,6 +19,26 @@ export type SurumNotu = {
 
 export const SURUM_NOTLARI: SurumNotu[] = [
   {
+    surum: "2026.11.01b",
+    tarih: "1 Kasım 2026",
+    baslik: "Anne ve baba aynı kayıtta",
+    roller: ["veli"],
+    maddeler: [
+      "Bir sporcuya iki veli bağlanabiliyor: ikiniz de çocuğu, aidatı ve antrenmanları görür, bildirim alırsınız.",
+      "Eşiniz çocuğu zaten kaydettiyse yeni kayıt açmayın; \"beni ikinci veli olarak bağlayın\" deyin.",
+    ],
+  },
+  {
+    surum: "2026.11.01c",
+    tarih: "1 Kasım 2026",
+    baslik: "Çift kayıtları birleştirin",
+    roller: ["admin", "baskan", "yonetici"],
+    maddeler: [
+      "Aynı çocuk iki kez kaydedildiyse Sporcular ekranının başında görünür; tek dokunuşla birleşir.",
+      "Sporcu sayfasından ikinci veli (anne ya da baba) e-postasıyla eklenebilir.",
+    ],
+  },
+  {
     surum: "2026.11.01",
     tarih: "1 Kasım 2026",
     baslik: "Yaş grupları ayrı yönetiliyor",
