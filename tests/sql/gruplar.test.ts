@@ -210,3 +210,21 @@ describe("kasa açılış bakiyesi", () => {
     expect(Number(r14[0].a)).toBe(0);
   });
 });
+
+describe("kullanıcılar ve yetkiler listesi", () => {
+  it("admin her grupta yalnızca o grubun kişilerini görür; tüm kişiler ayrı listede", async () => {
+    await oturumla(db, admin, `select spor_grup_sec($1)`, [u14]);
+    const l14 = (await oturumla<{ id: string }>(db, admin, `select id from spor_grup_kullanicilari()`)).map((x) => x.id);
+    expect(l14).toContain(veli14);
+    expect(l14).toContain(yonetici14);
+    expect(l14).not.toContain(veli15);
+    expect(l14).not.toContain(antrenor15);
+    await oturumla(db, admin, `select spor_grup_sec($1)`, [u15]);
+    const l15 = (await oturumla<{ id: string }>(db, admin, `select id from spor_grup_kullanicilari()`)).map((x) => x.id);
+    expect(l15).toContain(veli15);
+    expect(l15).not.toContain(veli14);
+    const tum = await oturumla<{ id: string }>(db, admin, `select id from spor_grup_kullanicilari_tum()`);
+    expect(tum.map((x) => x.id)).toEqual(expect.arrayContaining([veli14, veli15]));
+    expect(await oturumla(db, yonetici15, `select id from spor_grup_kullanicilari_tum()`)).toHaveLength(0);
+  });
+});

@@ -259,7 +259,8 @@ export async function rolAta(formData: FormData) {
   }
   revalidatePath("/yonetim/ayarlar");
   revalidatePath("/yonetim/gruplar");
-  bildir(String(formData.get("donus") || "/yonetim/ayarlar"), `Pozisyon güncellendi: ${ROL_ADI[rol] ?? rol}`);
+  const donus = String(formData.get("donus") || "");
+  bildir(donus.startsWith("/yonetim/") ? donus : "/yonetim/ayarlar", `Pozisyon güncellendi: ${ROL_ADI[rol] ?? rol}`);
 }
 
 export async function macKaydet(formData: FormData) {

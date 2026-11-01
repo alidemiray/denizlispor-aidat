@@ -10,7 +10,12 @@ import { KULUP } from "@/kulup";
 
 export const dynamic = "force-dynamic";
 
-export default async function AyarlarSayfasi() {
+export default async function AyarlarSayfasi({
+  searchParams,
+}: {
+  searchParams: Promise<{ tum?: string }>;
+}) {
+  const { tum } = await searchParams;
   const { supabase, user, rol } = await yoneticiGerekli();
   const gruplar = await gruplarim(supabase);
   const gruplu = gruplar.length > 0; // 20261104 göçü uygulanmış
@@ -21,7 +26,9 @@ export default async function AyarlarSayfasi() {
   const a = await ayarlariOku(supabase);
 
   // Kullanıcılar: aktif gruptaki rolleriyle
-  const kRpc = await supabase.rpc("spor_grup_kullanicilari");
+  // Admin / başkan "tüm kişiler" görünümünde başka gruptan birine bu grupta pozisyon verir
+  const tumKisiler = tum === "1" && kulupGeneliMi(rol) && cokGrup;
+  const kRpc = await supabase.rpc(tumKisiler ? "spor_grup_kullanicilari_tum" : "spor_grup_kullanicilari");
   const kullanicilar = (
     kRpc.error && gocYok(kRpc.error)
       ? (await supabase
@@ -30,7 +37,14 @@ export default async function AyarlarSayfasi() {
           .order("created_at", { ascending: false })
           .limit(200)).data
       : kRpc.data
-  ) as { id: string; eposta: string | null; ad_soyad: string | null; rol: string; temel_rol?: string }[] | null;
+  ) as {
+    id: string;
+    eposta: string | null;
+    ad_soyad: string | null;
+    rol: string;
+    temel_rol?: string;
+    gruplar?: string | null;
+  }[] | null;
 
   // Pozisyonları admin ve kulüp başkanı belirler (göç öncesi eski kurulumda yönetici de)
   const yetkiVerebilir = gruplu ? kulupGeneliMi(rol) : true;
@@ -260,9 +274,25 @@ export default async function AyarlarSayfasi() {
           </div>
         )}
 
-        <h2 className="mb-2 mt-8 px-1 bolum-basligi">
-          Kullanıcılar ve yetkiler
-        </h2>
+        <div className="mb-2 mt-8 flex items-center gap-2 px-1">
+          <h2 className="bolum-basligi flex-1">
+            {tumKisiler ? "Kulüpteki tüm kişiler" : `Kullanıcılar ve yetkiler${grupEki}`}
+          </h2>
+          {cokGrup && kulupGeneliMi(rol) ? (
+            <a
+              href={tumKisiler ? "/yonetim/ayarlar" : "/yonetim/ayarlar?tum=1"}
+              className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700"
+            >
+              {tumKisiler ? `Yalnızca ${grup?.ad ?? "bu grup"}` : "Başka gruptan kişi ata"}
+            </a>
+          ) : null}
+        </div>
+        {tumKisiler ? (
+          <p className="-mt-1 mb-2 px-1 text-xs leading-relaxed text-neutral-500">
+            Verdiğiniz pozisyon <b>{grup?.ad}</b> grubunda geçerli olur. Kişinin şu an bağlı olduğu gruplar
+            adının altında yazar.
+          </p>
+        ) : null}
         <div className="kart mb-3 px-4 py-3.5">
           <p className="text-xs leading-relaxed text-neutral-600">
             <b>Veli</b> yalnızca kendi sporcusunu görür; kaydı onaylanınca aidat ve kasayı görür.{" "}
@@ -283,7 +313,10 @@ export default async function AyarlarSayfasi() {
                   {k.ad_soyad || "İsimsiz"}
                   {k.id === user.id ? " (siz)" : ""}
                 </p>
-                <p className="truncate text-xs text-neutral-500">{k.eposta}</p>
+                <p className="truncate text-xs text-neutral-500">
+                  {k.eposta}
+                  {tumKisiler && k.gruplar ? ` · ${k.gruplar}` : ""}
+                </p>
               </div>
               {k.id === user.id || !yetkiVerebilir ? (
                 <span className={`rozet ${k.id === user.id ? "bg-yesil-100 text-yesil-800" : "bg-neutral-100 text-neutral-700"}`}>
@@ -292,6 +325,7 @@ export default async function AyarlarSayfasi() {
               ) : (
                 <form action={rolAta} className="flex items-center gap-1.5">
                   <input type="hidden" name="id" value={k.id} />
+                  {tumKisiler ? <input type="hidden" name="donus" value="/yonetim/ayarlar?tum=1" /> : null}
                   <select
                     name="rol"
                     defaultValue={k.rol}
