@@ -116,6 +116,7 @@ export const YONETIM_MENUSU: Menu = {
       baslik: "Kulüp",
       ogeler: [
         { yol: "/yonetim/gruplar", ad: "Gruplar", ikon: "kisiler" },
+        { yol: "/yonetim/yetkiler", ad: "Yetkiler", ikon: "kalkan" },
         { yol: "/yonetim/ayarlar", ad: "Ayarlar ve yetkiler", ikon: "ayar" },
         { yol: "/yonetim/disa-aktar", ad: "Dışa aktar", ikon: "indir" },
         { yol: "/panel", ad: "Veli panelim", ikon: "kisiler" },
@@ -146,7 +147,7 @@ export function rozetEkle(menu: Menu, okunmamis: number): Menu {
 }
 
 /** Yalnızca admin ve kulüp başkanının gördüğü menü öğeleri */
-export const KULUP_GENELI_YOLLARI = ["/yonetim/gruplar"];
+export const KULUP_GENELI_YOLLARI = ["/yonetim/gruplar", "/yonetim/yetkiler"];
 
 export function menuSuz(menu: Menu, cikar: string[]): Menu {
   if (!cikar.length) return menu;

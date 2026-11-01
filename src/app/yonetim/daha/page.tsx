@@ -92,6 +92,12 @@ export default async function Daha() {
           aciklama: "U11, U12… grupları, kayıt bağlantıları, sezon sonu üst klasmana geçiş",
           ikon: "kisiler" as IkonAdi,
         },
+        {
+          yol: "/yonetim/yetkiler",
+          ad: "Yetkiler",
+          aciklama: "Kim hangi grupta ne görevde, veliler kasayı görsün mü",
+          ikon: "kalkan" as IkonAdi,
+        },
         ...BOLUMLER,
       ]
     : BOLUMLER;

@@ -1,7 +1,8 @@
 import UstBaslik from "@/components/UstBaslik";
 import { OdemeRozeti } from "@/components/Rozet";
 import { yoneticiGerekli } from "@/lib/yetki";
-import { odemeKarar } from "@/app/yonetim/actions";
+import { odemeKarar, odemeSil } from "@/app/yonetim/actions";
+import { kulupGeneliMi } from "@/lib/roller";
 import { donemAdi, gunAdi, tl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ const YONTEM: Record<string, string> = {
 };
 
 export default async function OdemelerSayfasi() {
-  const { supabase } = await yoneticiGerekli();
+  const { supabase, rol } = await yoneticiGerekli();
 
   const { data } = await supabase
     .from("spor_odemeler")
@@ -38,6 +39,7 @@ export default async function OdemelerSayfasi() {
     .limit(200);
 
   const odemeler = (data ?? []) as unknown as OdemeSatir[];
+  const silebilir = kulupGeneliMi(rol);
   const bekleyen = odemeler.filter((o) => o.durum === "beklemede");
   const digerleri = odemeler.filter((o) => o.durum !== "beklemede");
 
@@ -98,6 +100,20 @@ export default async function OdemelerSayfasi() {
         ) : (
           <OdemeRozeti durum={o.durum} />
         )}
+        {silebilir && o.durum !== "beklemede" ? (
+          <details className="relative">
+            <summary className="cursor-pointer list-none rounded-lg bg-neutral-100 px-2.5 py-1.5 text-xs font-semibold text-neutral-600">
+              Sil
+            </summary>
+            <form action={odemeSil} className="absolute right-0 z-10 mt-1 w-56 rounded-xl bg-white p-3 text-xs shadow-lg ring-1 ring-neutral-200">
+              <input type="hidden" name="id" value={o.id} />
+              <p className="mb-2 text-neutral-700">
+                {tl(o.tutar)} tahsilat silinsin mi? Kasadan düşer, aidatı yeniden borç görünür; eski hali arşivde kalır.
+              </p>
+              <button className="w-full rounded-lg bg-red-600 px-3 py-1.5 font-bold text-white">Evet, sil</button>
+            </form>
+          </details>
+        ) : null}
       </div>
     );
   }

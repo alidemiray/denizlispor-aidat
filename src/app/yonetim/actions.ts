@@ -392,6 +392,23 @@ export async function kasaEkle(formData: FormData) {
   bildir("/yonetim/kasa", "Kasa hareketi eklendi");
 }
 
+/** Yanlış girilmiş tahsilatı siler (admin / başkan; eski hali kayıt arşivine yazılır). */
+export async function odemeSil(formData: FormData) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("spor_odemeler")
+    .delete()
+    .eq("id", String(formData.get("id")))
+    .select("id");
+  if (error) uyar("/yonetim/odemeler", error.message);
+  if (!data?.length) uyar("/yonetim/odemeler", "Onaylanmış tahsilatı yalnızca admin ya da kulüp başkanı silebilir.");
+  revalidatePath("/yonetim/odemeler");
+  revalidatePath("/yonetim/kasa");
+  revalidatePath("/yonetim/aidatlar");
+  revalidatePath("/panel/kasa");
+  bildir("/yonetim/odemeler", "Tahsilat silindi (kayıt arşivinde saklanır)");
+}
+
 export async function kasaAcilisKaydet(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.rpc("spor_kasa_acilis_kaydet", {

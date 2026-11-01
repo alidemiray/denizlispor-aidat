@@ -228,3 +228,36 @@ describe("kullanıcılar ve yetkiler listesi", () => {
     expect(await oturumla(db, yonetici15, `select id from spor_grup_kullanicilari_tum()`)).toHaveLength(0);
   });
 });
+
+describe("admin yetki ekranı ve görünürlük", () => {
+  it("admin grup değiştirmeden pozisyon verir/alır; başkan da verir; yönetici veremez", async () => {
+    await oturumla(db, admin, `select spor_grup_yetkisi_ver($1, $2, 'antrenor')`, [veli14, u15]);
+    expect((await db.query(`select rol from spor_grup_uyeleri where kullanici_id = $1 and grup_id = $2`, [veli14, u15])).rows)
+      .toEqual([{ rol: "antrenor" }]);
+    await oturumla(db, baskan, `select spor_grup_yetkisi_ver($1, $2, 'yok')`, [veli14, u15]);
+    expect((await db.query(`select 1 from spor_grup_uyeleri where kullanici_id = $1 and grup_id = $2`, [veli14, u15])).rows).toHaveLength(0);
+    expect(await hataMesaji(oturumla(db, yonetici15, `select spor_grup_yetkisi_ver($1, $2, 'antrenor')`, [veli15, u15])))
+      .toMatch(/admin ya da kulüp başkanı/);
+    const t = await oturumla<{ id: string }>(db, admin, `select id from spor_yetki_tablosu()`);
+    expect(t.length).toBeGreaterThan(5);
+  });
+
+  it("admin bir grupta velilerin kasayı görmesini kapatır; yönetim görmeye devam eder", async () => {
+    await oturumla(db, admin, `select spor_grup_ayar_yaz($1, 'veli_kasa', 'kapali')`, [u14]);
+    expect((await oturumla<{ k: boolean }>(db, veli14, `select spor_kasa_gorebilir_mi() as k`))[0].k).toBe(false);
+    expect((await oturumla<{ k: boolean }>(db, yonetici14, `select spor_kasa_gorebilir_mi() as k`))[0].k).toBe(true);
+    await oturumla(db, admin, `select spor_grup_ayar_yaz($1, 'veli_kasa', 'acik')`, [u14]);
+    expect((await oturumla<{ k: boolean }>(db, veli14, `select spor_kasa_gorebilir_mi() as k`))[0].k).toBe(true);
+  });
+
+  it("onaylı tahsilatı yalnızca admin/başkan siler; silinen arşive yazılır", async () => {
+    const id = (await db.query<{ id: string }>(
+      `insert into spor_odemeler (sporcu_id, tutar, durum) values ($1, 777, 'onaylandi') returning id`, [cocuk14])).rows[0].id;
+    await oturumla(db, yonetici14, `delete from spor_odemeler where id = $1`, [id]);
+    expect((await db.query(`select 1 from spor_odemeler where id = $1`, [id])).rows).toHaveLength(1);
+    await oturumla(db, admin, `select spor_grup_sec($1)`, [u14]);
+    await oturumla(db, admin, `delete from spor_odemeler where id = $1`, [id]);
+    expect((await db.query(`select 1 from spor_odemeler where id = $1`, [id])).rows).toHaveLength(0);
+    expect((await db.query(`select 1 from spor_kayit_gecmisi where tablo = 'spor_odemeler' and kayit_id = $1 and islem = 'DELETE'`, [id])).rows).toHaveLength(1);
+  });
+});

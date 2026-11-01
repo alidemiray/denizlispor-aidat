@@ -19,6 +19,17 @@ export type SurumNotu = {
 
 export const SURUM_NOTLARI: SurumNotu[] = [
   {
+    surum: "2026.11.01d",
+    tarih: "1 Kasım 2026",
+    baslik: "Yetkiler ekranı",
+    roller: ["admin", "baskan"],
+    maddeler: [
+      "Yönetim › Yetkiler: kim hangi grupta ne görevde, tek tabloda; grup değiştirmeden pozisyon verin.",
+      "Her grup için velilerin kasayı, ödemeyenler listesini ve aidat akışını görüp görmeyeceğini seçin.",
+      "Ödemeler ekranında yanlış girilen tahsilatı silebilirsiniz; eski hali kayıt arşivinde kalır.",
+    ],
+  },
+  {
     surum: "2026.11.01b",
     tarih: "1 Kasım 2026",
     baslik: "Anne ve baba aynı kayıtta",

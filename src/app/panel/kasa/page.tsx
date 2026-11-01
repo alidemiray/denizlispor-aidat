@@ -44,6 +44,22 @@ const TUR_ADI: Record<string, string> = {
 export default async function VeliKasa() {
   const { supabase } = await kasaEkraniGerekli();
 
+  // Kulüp bu grupta kasayı velilerle paylaşmıyorsa (Yetkiler › Veliler neyi görür)
+  const { data: kasaAcik, error: kasaHata } = await supabase.rpc("spor_kasa_gorebilir_mi");
+  if (!kasaHata && kasaAcik === false) {
+    return (
+      <>
+        <UstBaslik baslik="Kulüp kasası" geri="/panel" />
+        <div className="mx-auto w-full max-w-3xl px-4 pt-4">
+          <div className="kart px-5 py-6 text-center text-sm leading-relaxed text-neutral-500">
+            Kulüp bu grupta kasa bilgilerini şu an velilerle paylaşmıyor. Aidat durumunuzu Aidat
+            ekranından görebilirsiniz.
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const [{ data: ozetData }, { data: hareketData }, { data: odemeyenData }] = await Promise.all([
     supabase.rpc("spor_kasa_ozeti"),
     supabase
