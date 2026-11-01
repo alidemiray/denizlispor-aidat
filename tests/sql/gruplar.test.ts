@@ -169,6 +169,20 @@ describe("ikinci grup açılınca", () => {
     await oturumla(db, admin, `select spor_sporcu_grup_degistir($1, $2)`, [cocuk15, u15]);
   });
 
+  it("personel olan veli, çocuğunu başka grubun yönetim listesinde görmez", async () => {
+    const r = (await db.query<{ id: string }>(
+      `insert into spor_sporcular (ad, soyad, durum, veli_id, grup_id) values ('Enes', 'Ay', 'aktif', $1, $2) returning id`,
+      [admin, u14])).rows[0].id;
+    await oturumla(db, admin, `select spor_grup_sec($1)`, [u15]);
+    const listede = await oturumla<{ id: string }>(db, admin, `select id from spor_sporcular where id = $1`, [r]);
+    expect(listede).toHaveLength(0);
+    await oturumla(db, admin, `select spor_grup_sec($1)`, [u14]);
+    expect(await oturumla(db, admin, `select id from spor_sporcular where id = $1`, [r])).toHaveLength(1);
+    // Personel olmayan veli iki gruptaki çocuğunu her yerde görür
+    expect(await oturumla(db, veli14, `select 1 from spor_sporcular`)).toHaveLength(1);
+    await db.query(`delete from spor_sporcular where id = $1`, [r]);
+  });
+
   it("sezon geçişi: U15 → U16 ve U14 → U15 aynı anda; kasa ve veliler kuşakla gider", async () => {
     expect(await hataMesaji(oturumla(db, yonetici15, `select spor_sezon_gecisi($1::jsonb)`,
       [JSON.stringify([{ grup_id: u15, ad: "U16", kod: "u16" }])]))).toMatch(/admin/);
