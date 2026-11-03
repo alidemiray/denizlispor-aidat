@@ -188,6 +188,39 @@ describe("FutAkademi ajanı", () => {
     expect(k.son_durum).toMatch(/^hata/);
   });
 
+  it("sezon bitince: tüm maçlar skorlu + 45 gün sonra o grubun taraması kapanır, bir kez bildirilir", async () => {
+    await yanit(`/leagues/${LIG}/weeks/3`, hafta(3, [mac(3, BIZ, RAKIP_B, "2026-12-27T08:00:00.000Z", [1, 1])]));
+    await db.query(`select spor_futakademi_senkron('2027-01-20')`);  // son maç + 24 gün: sürer
+    expect((await db.query<{ aktif: boolean }>(`select aktif from spor_dis_kaynaklar where grup_id = $1`, [u15])).rows[0].aktif).toBe(true);
+    const r = await db.query<{ r: Record<string, { sezon_bitti?: boolean }> }>(`select spor_futakademi_senkron('2027-02-15') as r`);
+    expect(r.rows[0].r.U15.sezon_bitti).toBe(true);
+    const k = (await db.query<{ aktif: boolean; bitis_tarihi: string; son_durum: string }>(
+      `select aktif, bitis_tarihi::text, son_durum from spor_dis_kaynaklar where grup_id = $1`, [u15])).rows[0];
+    expect(k).toMatchObject({ aktif: false, bitis_tarihi: "2027-02-15" });
+    expect(k.son_durum).toMatch(/^sezon bitti/);
+    const once = await say(`select count(*) n from spor_senkron_gunlugu where grup_id = $1`, [u15]);
+    await db.query(`select spor_futakademi_senkron('2027-02-16')`);  // kapalı grup taranmaz
+    expect(await say(`select count(*) n from spor_senkron_gunlugu where grup_id = $1`, [u15])).toBe(once);
+    expect(await say(`select count(*) n from spor_bildirimler where tur = 'sezon_bitti' and kullanici_id = $1`, [admin])).toBe(1);
+  });
+
+  it("FutAkademi bir sonucu hiç girmese de son maçtan 90 gün sonra kapanır; yeni sezonda yeniden açılır", async () => {
+    await db.query(`delete from test_fa_hata`);
+    await yanit(`/leagues/${LIG14}/weeks`, [1]);
+    await yanit(`/leagues/${LIG14}/weeks/1`, hafta(1, [mac(5, BIZ, RAKIP_A, "2027-03-01T10:00:00.000Z", null)]));
+    await db.query(`select spor_futakademi_senkron('2027-05-01')`);  // 61 gün: skorsuz maç var, sürer
+    expect((await db.query<{ aktif: boolean }>(`select aktif from spor_dis_kaynaklar where grup_id = $1`, [u14])).rows[0].aktif).toBe(true);
+    await db.query(`select spor_futakademi_senkron('2027-06-05')`);  // 96 gün
+    const k = (await db.query<{ aktif: boolean; son_durum: string }>(`select aktif, son_durum from spor_dis_kaynaklar where grup_id = $1`, [u14])).rows[0];
+    expect(k.aktif).toBe(false);
+    expect(k.son_durum).toMatch(/1 maçın sonucu FutAkademi'de hiç girilmedi/);
+    expect(await db.query(`select spor_futakademi_zamanlama() as z`).then((x) => (x.rows[0] as { z: string }).z)).toBe("pg_cron yok");
+    // yeni sezon
+    await db.query(`update spor_dis_kaynaklar set lig_id = $2, sezon = '2027-2028', aktif = true where grup_id = $1`, [u14, LIG]);
+    const y = (await db.query<{ aktif: boolean; bitis_tarihi: string | null }>(`select aktif, bitis_tarihi from spor_dis_kaynaklar where grup_id = $1`, [u14])).rows[0];
+    expect(y).toEqual({ aktif: true, bitis_tarihi: null });
+  });
+
   it("yetkiler: ajan dışarıdan çağrılamaz; 'şimdi güncelle' yalnız kulüp yönetimine", async () => {
     expect(await hataMesaji(oturumla(db, veli, `select spor_futakademi_senkron()`))).toMatch(/permission denied/);
     expect(await hataMesaji(oturumla(db, veli, `select spor_fa_get('/x')`))).toMatch(/permission denied/);
