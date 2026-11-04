@@ -14,7 +14,7 @@ import { KULUP } from "@/kulup";
 export const dynamic = "force-dynamic";
 
 type YoklamaKayit = { durum: string; spor_antrenmanlar: { tarih: string } | null };
-type MacKayit = { dakika: number; spor_maclar: { tarih: string; rakip: string } | null };
+type MacKayit = { dakika: number; ilk_onbir: boolean; spor_maclar: { tarih: string; yas_grubu: string | null } | null };
 
 export default async function AntrenorSporcuDetay({
   params,
@@ -53,7 +53,7 @@ export default async function AntrenorSporcuDetay({
       .limit(50),
     supabase
       .from("spor_mac_katilim")
-      .select("dakika, spor_maclar(tarih, rakip)")
+      .select("dakika, ilk_onbir, spor_maclar(tarih, yas_grubu)")
       .eq("sporcu_id", id),
   ]);
 
@@ -65,13 +65,11 @@ export default async function AntrenorSporcuDetay({
   const notlar = (notData ?? []) as SporcuNotu[];
   const maclar = ((macData ?? []) as unknown as MacKayit[])
     .filter((m) => m.spor_maclar)
-    .sort((a, b) => (a.spor_maclar!.tarih < b.spor_maclar!.tarih ? -1 : 1))
-    .slice(-8)
     .map((m) => ({
-      etiket: new Date(m.spor_maclar!.tarih + "T00:00:00")
-        .toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
-        .replace(".", ""),
-      deger: m.dakika,
+      tarih: m.spor_maclar!.tarih,
+      yas_grubu: m.spor_maclar!.yas_grubu,
+      dakika: m.dakika,
+      ilk_kadro: m.ilk_onbir,
     }));
 
   const sonDeg = degerlendirmeler[degerlendirmeler.length - 1];
@@ -97,7 +95,7 @@ export default async function AntrenorSporcuDetay({
             yoklamalar={yoklamalar}
             degerlendirmeler={degerlendirmeler}
             olcumler={olcumler}
-            macDakikalari={maclar}
+            maclar={maclar}
           />
         </div>
 

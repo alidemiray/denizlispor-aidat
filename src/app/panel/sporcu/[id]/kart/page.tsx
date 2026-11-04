@@ -6,7 +6,9 @@ import { oturum } from "@/lib/yetki";
 import { DEGERLENDIRME_ALANLARI } from "@/lib/antrenman";
 import { donemAdi } from "@/lib/format";
 import type { Degerlendirme, Sporcu } from "@/lib/types";
-import { KULUP } from "@/kulup";
+import { BRANS, KULUP } from "@/kulup";
+import { dakikaPayi, donemKiyasi } from "@/lib/analiz";
+import { sezonAraligi, sezonYili } from "@/lib/sezon";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +36,28 @@ export default async function SezonKarti({ params }: { params: Promise<{ id: str
     .select("*")
     .eq("sporcu_id", id)
     .order("donem", { ascending: false })
-    .limit(1);
-  const deg = ((degData ?? []) as Degerlendirme[])[0] ?? null;
+    .limit(2);
+  const degler = (degData ?? []) as Degerlendirme[];
+  const deg = degler[0] ?? null;
+  const kiyas = donemKiyasi(degler, DEGERLENDIRME_ALANLARI);
+  const farklar = new Map((kiyas?.once ? kiyas.alanlar : []).map((a) => [a.ad, a.fark]));
+
+  // Sezonun maç özeti (kartın sezonu: son değerlendirmenin sezonu, yoksa bugünkü)
+  const kartSezonu = sezonYili(deg?.donem ?? new Date().toISOString().slice(0, 10));
+  const { bas, bit } = sezonAraligi(kartSezonu);
+  const { data: katData } = await supabase
+    .from("spor_mac_katilim")
+    .select("dakika, ilk_onbir, spor_maclar!inner(tarih, yas_grubu)")
+    .eq("sporcu_id", id)
+    .gte("spor_maclar.tarih", bas)
+    .lte("spor_maclar.tarih", bit);
+  const sezonPayi = dakikaPayi(
+    ((katData ?? []) as unknown as { dakika: number; ilk_onbir: boolean; spor_maclar: { tarih: string; yas_grubu: string | null } | null }[])
+      .filter((k) => k.spor_maclar)
+      .map((k) => ({ tarih: k.spor_maclar!.tarih, yas_grubu: k.spor_maclar!.yas_grubu, dakika: k.dakika, ilk_kadro: k.ilk_onbir })),
+    BRANS,
+    kartSezonu + 1,
+  );
 
   let foto: string | null = null;
   if (sporcu.foto_yolu) {
@@ -109,6 +131,15 @@ export default async function SezonKarti({ params }: { params: Promise<{ id: str
                   <div key={p.ad} className="border-t-2 border-yesil-500 pt-2">
                     <p className="font-manset text-[28px] font-extrabold leading-none">{puan(p.deger)}</p>
                     <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.06em] text-neutral-500">{p.ad}</p>
+                    {(() => {
+                      const f = farklar.get(p.ad);
+                      if (f === null || f === undefined || f === 0) return null;
+                      return (
+                        <p className={`mt-0.5 font-mono text-[10px] font-bold ${f > 0 ? "text-yesil-500" : "text-neutral-500"}`}>
+                          {f > 0 ? `▲${puan(f)}` : `▼${puan(Math.abs(f))}`}
+                        </p>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -117,6 +148,30 @@ export default async function SezonKarti({ params }: { params: Promise<{ id: str
                 Antrenör dönem değerlendirmesini girince kartın puanları burada görünür.
               </p>
             )}
+
+            {sezonPayi.kadroda > 0 ? (
+              <div className="relative mt-5 grid grid-cols-3 gap-2 rounded-xl bg-yuzey px-3 py-3">
+                {[
+                  { ad: "Maç", deger: String(sezonPayi.kadroda) },
+                  BRANS.sureli
+                    ? { ad: "Süre payı", deger: sezonPayi.yuzde !== null ? `%${sezonPayi.yuzde}` : "–" }
+                    : { ad: "Süre aldığı", deger: String(sezonPayi.oynadigi) },
+                  BRANS.ilkKadro
+                    ? { ad: BRANS.ilkKadro, deger: String(sezonPayi.ilkKadro) }
+                    : { ad: "Dakika", deger: `${sezonPayi.toplamDakika}′` },
+                ].map((k) => (
+                  <div key={k.ad} className="text-center">
+                    <p className="font-manset text-[22px] font-extrabold leading-none">{k.deger}</p>
+                    <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.06em] text-neutral-500">{k.ad}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {kiyas?.once ? (
+              <p className="relative mt-2 font-mono text-[10px] text-neutral-500">
+                ▲▼ {donemAdi(kiyas.once.donem)} değerlendirmesine göre
+              </p>
+            ) : null}
 
             {deg?.yorum ? (
               <p className="relative mt-5 text-[15px] leading-relaxed text-neutral-700">“{deg.yorum}”</p>

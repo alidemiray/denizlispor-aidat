@@ -215,10 +215,12 @@ export function HalkaGrafik({
   yuzde,
   altYazi,
   boyut = 116,
+  baslik = "Devam oranı",
 }: {
   yuzde: number;
   altYazi?: string;
   boyut?: number;
+  baslik?: string;
 }) {
   const r = 46;
   const cevre = 2 * Math.PI * r;
@@ -227,7 +229,7 @@ export function HalkaGrafik({
   return (
     <div className="flex flex-col items-center" style={{ width: boyut }}>
       <svg viewBox="0 0 110 110" style={{ width: boyut, height: boyut }} role="img">
-        <title>{`Devam oranı %${Math.round(yuzde)}`}</title>
+        <title>{`${baslik} %${Math.round(yuzde)}`}</title>
         <circle cx="55" cy="55" r={r} fill="none" stroke={IZGARA} strokeWidth={9} />
         <circle
           cx="55"

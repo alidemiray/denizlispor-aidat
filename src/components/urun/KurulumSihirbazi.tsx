@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BRANSLAR } from "@/lib/brans";
 import { kontrast, markaPaleti, notrPalet } from "@/kulup";
 
 /**
@@ -40,6 +41,7 @@ export default function KurulumSihirbazi() {
   const [kurulus, setKurulus] = useState("1998");
   const [ana, setAna] = useState("#D4202C");
   const [koyu, setKoyu] = useState("#1E1A1B");
+  const [brans, setBrans] = useState("futbol");
   const [kopyalandi, setKopyalandi] = useState(false);
 
   const anaG = gecerliHex(ana) ? ana : "#00A650";
@@ -72,6 +74,7 @@ export default function KurulumSihirbazi() {
       sehir,
       kurulus: Number(kurulus) || null,
       etiket: "Altyapı · Sporcu Takip",
+      brans,
       arma: `/kulupler/${kod(kisaAd)}/arma.svg`,
       renkler: { ana: anaG, koyu: koyuG, acik: "#FFFFFF", anaUzerindeMetin: metinRengi },
       yayin: { adres: `https://${kod(kisaAd)}-altyapi.vercel.app` },
@@ -101,6 +104,15 @@ export default function KurulumSihirbazi() {
             <input id="s-yil" className="alan" inputMode="numeric" maxLength={4} value={kurulus}
               onChange={(e) => setKurulus(e.target.value.replace(/\D/g, ""))} />
           </div>
+        </div>
+
+        <div>
+          <label className="etiket" htmlFor="s-brans">Branş</label>
+          <select id="s-brans" className="alan" value={brans} onChange={(e) => setBrans(e.target.value)}>
+            {Object.values(BRANSLAR).map((b) => (
+              <option key={b.kod} value={b.kod}>{b.ad}</option>
+            ))}
+          </select>
         </div>
 
         <fieldset>

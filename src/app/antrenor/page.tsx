@@ -7,7 +7,10 @@ import { gunAdi } from "@/lib/format";
 import { ANTRENMAN_TURU, haftaBasi } from "@/lib/antrenman";
 import type { Antrenman } from "@/lib/types";
 import { kalanGunMetni, yaklasanDogumGunleri } from "@/lib/dogumGunu";
-import { bugunTR } from "@/lib/sezon";
+import { bugunTR, bugunkuSezon, sezonAraligi } from "@/lib/sezon";
+import { haftalikUyarilar } from "@/lib/analiz";
+import { BRANS } from "@/kulup";
+import AntrenorUyarilari from "@/components/AntrenorUyarilari";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +25,30 @@ export default async function AntrenorAnaSayfa() {
     supabase.from("spor_sporcular").select("id, ad, soyad, durum, yas_grubu, dogum_tarihi"),
     supabase.from("spor_yoklama").select("antrenman_id, durum"),
   ]);
+
+  // Analiz verisi: sezonun maçları + son 6 haftanın yoklaması + son değerlendirmeler
+  const bugunT = bugunTR();
+  const { bas: sezonBas } = sezonAraligi(bugunkuSezon());
+  const altiHafta = new Date(Date.parse(bugunT + "T00:00:00Z") - 42 * 864e5).toISOString().slice(0, 10);
+  const [{ data: macData }, { data: yukData }, { data: degData }] = await Promise.all([
+    supabase.from("spor_maclar").select("id, tarih, yas_grubu").gte("tarih", sezonBas).lte("tarih", bugunT),
+    supabase
+      .from("spor_yoklama")
+      .select("sporcu_id, durum, spor_antrenmanlar!inner(tarih, sure_dk)")
+      .gte("spor_antrenmanlar.tarih", altiHafta),
+    supabase.from("spor_degerlendirmeler").select("sporcu_id, donem"),
+  ]);
+  const sezonMaclari = (macData ?? []) as { id: string; tarih: string; yas_grubu: string | null }[];
+  const { data: katData } = sezonMaclari.length
+    ? await supabase
+        .from("spor_mac_katilim")
+        .select("mac_id, sporcu_id, dakika")
+        .in("mac_id", sezonMaclari.map((m) => m.id))
+    : { data: [] };
+  const sonDegerlendirme: Record<string, string> = {};
+  for (const d of (degData ?? []) as { sporcu_id: string; donem: string }[]) {
+    if (!sonDegerlendirme[d.sporcu_id] || sonDegerlendirme[d.sporcu_id] < d.donem) sonDegerlendirme[d.sporcu_id] = d.donem;
+  }
 
   const antrenmanlar = (antrenmanData ?? []) as Antrenman[];
   const sporcular = (sporcuData ?? []) as { id: string; ad: string; soyad: string; durum: string; yas_grubu: string | null; dogum_tarihi: string | null }[];
@@ -38,6 +65,31 @@ export default async function AntrenorAnaSayfa() {
     (a) => !yoklamalar.some((y) => y.antrenman_id === a.id),
   );
   const sonUc = antrenmanlar.slice(0, 3);
+
+  const uyarilar = haftalikUyarilar(
+    {
+      sporcular: sporcular
+        .filter((x) => x.durum === "aktif")
+        .map(({ id, ad, soyad, yas_grubu }) => ({ id, ad, soyad, yas_grubu })),
+      maclar: sezonMaclari,
+      katilimlar: (katData ?? []) as { mac_id: string; sporcu_id: string; dakika: number }[],
+      yoklamalar: ((yukData ?? []) as unknown as {
+        sporcu_id: string;
+        durum: string;
+        spor_antrenmanlar: { tarih: string; sure_dk: number | null } | null;
+      }[])
+        .filter((y) => y.spor_antrenmanlar)
+        .map((y) => ({
+          sporcu_id: y.sporcu_id,
+          durum: y.durum,
+          tarih: y.spor_antrenmanlar!.tarih,
+          sure_dk: y.spor_antrenmanlar!.sure_dk,
+        })),
+      sonDegerlendirme,
+      bugun: bugunT,
+    },
+    BRANS,
+  );
 
   return (
     <>
@@ -93,6 +145,9 @@ export default async function AntrenorAnaSayfa() {
             </div>
           </div>
         ) : null}
+
+        <h2 className="mb-2 mt-6 px-1 bolum-basligi">Bu hafta dikkat</h2>
+        <AntrenorUyarilari uyarilar={uyarilar} azOynamaEsigi={BRANS.azOynamaEsigi} sureli={BRANS.sureli} />
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
           <Link

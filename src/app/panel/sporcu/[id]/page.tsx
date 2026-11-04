@@ -144,15 +144,12 @@ export default async function SporcuDetay({
   const gol = katilimlar.reduce((t, k) => t + k.gol, 0);
   const asist = katilimlar.reduce((t, k) => t + k.asist, 0);
 
-  const macDakikalari = [...katilimlar]
-    .reverse()
-    .slice(-8)
-    .map((k) => ({
-      etiket: new Date(k.spor_maclar!.tarih + "T00:00:00")
-        .toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
-        .replace(".", ""),
-      deger: k.dakika,
-    }));
+  const macSatirlari = katilimlar.map((k) => ({
+    tarih: k.spor_maclar!.tarih,
+    yas_grubu: k.spor_maclar!.yas_grubu,
+    dakika: k.dakika,
+    ilk_kadro: k.ilk_onbir,
+  }));
 
   // Pasaport: yolculuk adımları (gerçek kayıtlardan türetilir)
   const yolculuk: YolculukAdimi[] = [];
@@ -293,7 +290,7 @@ export default async function SporcuDetay({
           yoklamalar={yoklamaKayitlari}
           degerlendirmeler={degerlendirmeler}
           olcumler={olcumler}
-          macDakikalari={macDakikalari}
+          maclar={macSatirlari}
         />
 
         {notlar.length > 0 ? (

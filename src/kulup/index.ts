@@ -10,6 +10,7 @@
  */
 import denizlispor from "./kulupler/denizlispor.json";
 import ornek from "./kulupler/ornek.json";
+import { bransCoz, type Brans, type BransGirdisi } from "@/lib/brans";
 
 type Ton = "50" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900";
 export type Palet = Record<Ton, string>;
@@ -30,6 +31,8 @@ export type KulupYapilandirmasi = {
   notr?: Partial<Palet>;
   yayin: { adres: string };
   supabase: { proje: string; yayinAnahtari: string };
+  /** Branş (futbol, basketbol, voleybol…). Verilmezse futbol. Bkz. src/lib/brans.ts */
+  brans?: BransGirdisi;
 };
 
 const KULUPLER: Record<string, KulupYapilandirmasi> = {
@@ -42,6 +45,9 @@ export const KULUP_KODLARI = Object.keys(KULUPLER);
 const secili = (process.env.NEXT_PUBLIC_KULUP ?? "denizlispor").trim().toLowerCase();
 
 export const KULUP: KulupYapilandirmasi = KULUPLER[secili] ?? KULUPLER.denizlispor;
+
+/** Kulübün branşı: maç süreleri ve kadro terimleri. */
+export const BRANS: Brans = bransCoz(KULUP.brans);
 
 /* ----------------------------- renk yardımcıları ---------------------------- */
 

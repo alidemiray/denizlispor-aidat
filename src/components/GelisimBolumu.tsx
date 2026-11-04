@@ -2,6 +2,21 @@ import { CizgiGrafik, HalkaGrafik, SutunGrafik, YatayBarGrafik } from "@/compone
 import { DEGERLENDIRME_ALANLARI, YOKLAMA_DURUMU, haftaBasi } from "@/lib/antrenman";
 import { donemAdi } from "@/lib/format";
 import type { Degerlendirme, Olcum } from "@/lib/types";
+import { BRANS } from "@/kulup";
+import { dakikaPayi, donemKiyasi, kisiselRekorlar, sonDevam, type MacSatiri } from "@/lib/analiz";
+import { bugunTR } from "@/lib/sezon";
+
+const GIDIS = {
+  artiyor: { ad: "Süresi artıyor", stil: "bg-emerald-100 text-emerald-800" },
+  azaliyor: { ad: "Süresi azalıyor", stil: "bg-amber-100 text-amber-900" },
+  sabit: { ad: "Süresi dengeli", stil: "bg-neutral-100 text-neutral-700" },
+} as const;
+
+function kisaTarih(t: string) {
+  return new Date(t + "T00:00:00")
+    .toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
+    .replace(".", "");
+}
 
 export type YoklamaSatiri = { tarih: string; durum: string };
 
@@ -9,13 +24,19 @@ export default function GelisimBolumu({
   yoklamalar,
   degerlendirmeler,
   olcumler,
-  macDakikalari,
+  maclar = [],
 }: {
   yoklamalar: YoklamaSatiri[];
   degerlendirmeler: Degerlendirme[];
   olcumler: Olcum[];
-  macDakikalari?: { etiket: string; deger: number }[];
+  /** Sporcunun kadroya girdiği maçlar (dakika payı ve rekorlar buradan) */
+  maclar?: MacSatiri[];
 }) {
+  const bugun = bugunTR();
+  const pay = dakikaPayi(maclar, BRANS, Number(bugun.slice(0, 4)));
+  const devam4 = sonDevam(yoklamalar, bugun);
+  const kiyas = donemKiyasi(degerlendirmeler, DEGERLENDIRME_ALANLARI);
+  const rekorlar = kisiselRekorlar(olcumler, maclar);
   const katilan = yoklamalar.filter((y) => y.durum === "geldi" || y.durum === "gec").length;
   const devamYuzde = yoklamalar.length ? (katilan / yoklamalar.length) * 100 : 0;
 
@@ -80,7 +101,7 @@ export default function GelisimBolumu({
     yoklamalar.length === 0 &&
     degerlendirmeler.length === 0 &&
     olcumler.length === 0 &&
-    !(macDakikalari && macDakikalari.length);
+    maclar.length === 0;
 
   if (hicVeri) {
     return (
@@ -115,6 +136,13 @@ export default function GelisimBolumu({
             </div>
           </div>
 
+          {devam4 ? (
+            <p className="mt-4 rounded-xl bg-neutral-50 px-3.5 py-2.5 text-xs text-neutral-600">
+              Son 4 hafta: <span className="font-bold text-neutral-900">%{devam4.yuzde}</span>
+              {" "}({devam4.katilan}/{devam4.toplam} antrenman)
+            </p>
+          ) : null}
+
           {haftaSeri.length > 1 ? (
             <div className="mt-5 border-t border-neutral-100 pt-4">
               <p className="mb-2 text-xs font-semibold text-neutral-600">
@@ -140,6 +168,31 @@ export default function GelisimBolumu({
               }))}
             />
           </div>
+          {kiyas?.once ? (
+            <div className="mt-4 border-t border-neutral-100 pt-3.5">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
+                {donemAdi(kiyas.once.donem)} dönemine göre
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {kiyas.alanlar
+                  .filter((a) => a.fark !== null)
+                  .map((a) => (
+                    <span
+                      key={a.anahtar}
+                      className={`rozet ${
+                        a.fark! > 0
+                          ? "bg-emerald-100 text-emerald-800"
+                          : a.fark! < 0
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-neutral-100 text-neutral-700"
+                      }`}
+                    >
+                      {a.ad} {a.fark! > 0 ? `▲ ${a.fark}` : a.fark! < 0 ? `▼ ${Math.abs(a.fark!)}` : "="}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          ) : null}
           {sonDeg.yorum ? (
             <p className="mt-4 rounded-xl bg-neutral-50 px-3.5 py-3 text-sm leading-relaxed text-neutral-700">
               {sonDeg.yorum}
@@ -156,11 +209,66 @@ export default function GelisimBolumu({
         </div>
       ) : null}
 
-      {macDakikalari && macDakikalari.length > 0 ? (
+      {maclar.length > 0 ? (
         <div className="kart px-4 py-5">
-          <p className="text-sm font-bold text-neutral-900">Maçlarda oynadığı süre</p>
-          <p className="mb-3 text-xs text-neutral-500">Son {macDakikalari.length} maç, dakika</p>
-          <SutunGrafik veri={macDakikalari} birim="′" yukseklik={140} />
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-sm font-bold text-neutral-900">Maçlarda oynadığı süre</p>
+            {pay.gidis ? <span className={`rozet ${GIDIS[pay.gidis].stil}`}>{GIDIS[pay.gidis].ad}</span> : null}
+          </div>
+          <div className="mt-3 flex items-center gap-5">
+            {pay.yuzde !== null ? (
+              <HalkaGrafik yuzde={pay.yuzde} baslik="Süre payı" altYazi="oynanabilir sürenin" boyut={104} />
+            ) : null}
+            <div className="flex-1 space-y-1.5 text-xs">
+              {[
+                { ad: "Kadroda", deger: `${pay.kadroda} maç` },
+                ...(BRANS.sureli ? [{ ad: "Süre aldığı", deger: `${pay.oynadigi} maç` }] : []),
+                ...(BRANS.ilkKadro ? [{ ad: BRANS.ilkKadro, deger: `${pay.ilkKadro} maç` }] : []),
+                ...(BRANS.sureli ? [{ ad: "Toplam", deger: `${pay.toplamDakika}′` }] : []),
+              ].map((r) => (
+                <div key={r.ad} className="flex items-center justify-between gap-2">
+                  <span className="text-neutral-600">{r.ad}</span>
+                  <span className="font-bold text-neutral-900">{r.deger}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {pay.sonMaclar.length > 1 ? (
+            <div className="mt-5 border-t border-neutral-100 pt-4">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
+                Son {pay.sonMaclar.length} maç, dakika
+              </p>
+              <SutunGrafik
+                veri={pay.sonMaclar.map((m) => ({
+                  etiket: kisaTarih(m.tarih),
+                  deger: m.dakika,
+                  ipucu: `${kisaTarih(m.tarih)}: ${m.dakika}′ · sürenin %${m.yuzde}${m.ilkKadro && BRANS.ilkKadro ? ` · ${BRANS.ilkKadro}` : ""}`,
+                }))}
+                birim="′"
+                yukseklik={140}
+              />
+            </div>
+          ) : null}
+          {pay.yuzde !== null && devam4 ? (
+            <p className="mt-3 text-[11px] leading-relaxed text-neutral-500">
+              Son 4 hafta antrenman devamı %{devam4.yuzde}. Düzenli antrenman, maç süresinin en güvenilir yoludur.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {rekorlar.length > 0 ? (
+        <div className="kart px-4 py-5">
+          <p className="text-sm font-bold text-neutral-900">Kişisel rekorlar</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {rekorlar.map((r) => (
+              <div key={r.ad} className="rounded-xl bg-neutral-50 px-3 py-2.5">
+                <p className="text-[11px] text-neutral-500">{r.ad}</p>
+                <p className="font-manset text-xl font-extrabold leading-tight text-neutral-900">{r.deger}</p>
+                <p className="text-[10px] text-neutral-400">{kisaTarih(r.tarih)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
